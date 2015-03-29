@@ -10,5 +10,3 @@ blablabla
 
 ## Limits of other implementations
 blablabla
-
- 
