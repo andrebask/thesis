@@ -1,0 +1,2 @@
+#!/bin/bash
+pandoc --latex-engine=pdflatex -H preamble.tex -V fontsize=12pt -V documentclass:book -V papersize:a4paper -V classoption:openright --chapters --bibliography=papers.bib --csl="csl/science.csl" *-*.md -o "thesis.pdf"

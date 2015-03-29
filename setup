@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd
+sudo apt-get install pandoc
+rm -r .cabal .ghc
+cabal update
+cabal -g install --force-reinstalls pandoc-citeproc
+sudo mv /usr/bin/pandoc-citeproc /usr/bin/pandoc-citeproc.bak
+sudo ln -s /home/andrebask/.cabal/bin/pandoc-citeproc /usr/bin/pandoc-citeproc
+cd -
