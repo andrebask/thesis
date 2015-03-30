@@ -8,7 +8,7 @@ This is how you insert figures using markdown. Also how to insert citations copi
 
 ## Java, Java 8
 
-![Interphase and the different stages of mitosis. Figure from Walczak et al., 2010[@Walczak:2010uk]. \label{mitosis} ](figures/mitosis_Walczak.pdf)
+![Interphase and the different stages of mitosis. Figure from Walczak et al., 2010[@Bolton2000]. \label{mitosis} ](figures/mitosis_Walczak.pdf)
  
 See Figure \ref{mitosis} for a schematic illustration.
 
