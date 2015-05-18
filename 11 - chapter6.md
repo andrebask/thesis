@@ -1,7 +1,6 @@
 # Case studies
 
-## Dynamic Software Updating
-Write your awesome discussion here!  
+## Debugger
+Write your awesome discussion here!
 
 ## Async-Await
-
