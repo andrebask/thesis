@@ -44,7 +44,8 @@ This section describes some implementation designed to implement first class con
 SISC, a fully R5RS compliant heap-based interpreter of the functional language Scheme, with proper tail-recursion and first-class continuations.
 
 ### Scala's Continuations
-blablabla
+An other approach to implement first-class continuations is to transform programs into continuation passing-style (CPS). Unfortunately, the standard CPS-transform is a whole-program transformation. All explicit or implicit return statements are replaced by function calls and all state is kept in closures, completely bypassing the stack. For a stack-based architecture like the JVM, of course, this is not a good fit.
+Noting that manually written CPS code shows that only a small number of functions in a program actually need to pass along continuations, Tiark Rompf, Ingo Maier and Martin Odersky developed a selective CPS transform for the Scala programming language that is applied only where it is actually needed, and allows us to stick to a regular, stack-based runtime discipline for the majority of code. As a side effect, this by design avoids the performance problems associated with implementations of delimited continuations in terms of undelimited ones.
 
 ### Kilim, JavaFlow etc.
 blablabla
