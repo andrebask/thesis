@@ -1,7 +1,7 @@
 # State of the art
 
 ## Classical techniques
-This section describes the most used implementation strategies for first class continuations. As those implementations require to directly manipulate the stack, they are not suitable for being used on the Java Virtual Machine.
+The most common approach to implement first-class continuations is to stick with a stack-based execution architecture and to reify the current continuation by making a copy of the stack, which is reinstated when the continuation is invoked. This is the approach taken by many language implementations that are in direct control of the runtime system. This section describes the most used implementation strategies for first class continuations.
 
 ### The garbage-collection strategy
 The simplest strategy for ensuring that continuations have unlimited extent is to allocate them in the heap and to rely on garbage collection or reference counting to recover their storage. We call this the gc strategy. The gc strategy is not a zero-overhead strategy and it is optimised for programs in which every continuation frame is captured. Few real programs capture all continuations, however, so the gc strategy may not perform as well as a zero-overhead strategy. The most important indirect cost of the gc strategy is that the compiler must allocate a separate continuation frame for each non-tail call, unless the compiler can prove that the continuation will not be captured during the non-tail call. The gc strategy also suffers more cache misses than the other strategies described in this paper.
@@ -36,12 +36,14 @@ The Hieb-Dybvig-Bruggeman strategy is a zero-overhead strategy. As with the stac
 ### Comparison
 figure
 
-
 ## Alternative techniques for first class continuations on the Java Virtual Machine
+The implementations described in the previous section require to directly manipulate the stack, thus they are not suitable for being used on the Java Virtual Machine, which do not permit direct access or modification of stack contents.
+This section describes some implementation designed to implement first class continuations on the Java Virtual Machine.
 
-### SISC (Heap based)
+### Heap based model
+SISC, a fully R5RS compliant heap-based interpreter of the functional language Scheme, with proper tail-recursion and first-class continuations.
 
-### Scala?
+### Scala's Continuations
 blablabla
 
 ### Kilim, JavaFlow etc.
