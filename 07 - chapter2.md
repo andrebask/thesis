@@ -1,6 +1,6 @@
 # State of the art
 
-## Classical techniques
+## Classical stack-based implementation techniques for first-class continuations
 The most common approach to implement first-class continuations is to stick with a stack-based execution architecture and to reify the current continuation by making a copy of the stack, which is reinstated when the continuation is invoked. This is the approach taken by many language implementations that are in direct control of the runtime system. This section describes the most used implementation strategies for first class continuations.
 
 ### The garbage-collection strategy
