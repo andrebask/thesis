@@ -41,7 +41,10 @@ The implementations described in the previous section require to directly manipu
 This section describes some implementation designed to implement first class continuations on the Java Virtual Machine.
 
 ### Heap based model
-SISC, a fully R5RS compliant heap-based interpreter of the functional language Scheme, with proper tail-recursion and first-class continuations.
+In a typical implementation of a lexically-scoped language, a true stack is used to record call frames. Each call frame contains a return address, variable bindings, a link to the previous frame, and sometimes additional information. The variable bindings are the actual parameters of the called routine and local variables used by the called routine. A call frame is typically built by the calling routine, or caller. The caller pushes the actual parameters on the stack, a link to its stack frame, the return address, and jumps to the called routine, or callee. The callee augments the frame by pushing values of local variables. If the callee in turn calls another routine, it creates a new stack frame by pushing the actuals, frame link, and return address, and so on. When the callee has reached the end of its code, it returns to the caller by resetting the frame link, removing the frame, and jumping to the saved return address. In this manner, the state of each active call is recorded on the stack, and this state is destroyed once the call has been completed.
+Because of Scheme’s first-class closures and continuations, and because of restricted access of stack content on the JVM, this structure is not sufficient. First-class closures are capable of retaining argument bindings indefinitely. For this reason, it is not possible to store argument bindings in the stack frame. Instead, a heap-allocated environment is created to hold the actual parameters, and a pointer to this environment is placed in the call frame in their place. When a closure is created, a pointer to this environment is placed in the closure object.
+Moving the variable bindings into the heap saves the bindings from being overwritten as the stack shrinks and grows. However, first-class continuations require heap allocation of the call frames as well as the environment. This is because the natural implementation of a continuation is to retain a pointer into the call stack. Because the continuation is a first-class object, there is no restriction on when it may be invoked. In particular, it may be invoked even after control has returned from the point where it was obtained. If so, the stack may have since grown, overwriting some of the stack frames in the continuation. The natural solution, then, is to maintain a linked list of heap-allocated stack frames. As the stack grows, a new frame is allocated in an unused portion of the heap so that the old stack frames remain intact.
+The heap-based model has been used by several implementations, including Smalltalk (aside from optimizations), StacklessPython, Ruby, SML. On the JVM, this technique has been utilised by SISC, a fully R5RS compliant interpreter of Scheme, with proper tail-recursion and first-class continuations.
 
 ### Scala's Continuations
 An other approach to implement first-class continuations is to transform programs into continuation passing-style (CPS). Unfortunately, the standard CPS-transform is a whole-program transformation. All explicit or implicit return statements are replaced by function calls and all state is kept in closures, completely bypassing the stack. For a stack-based architecture like the JVM, of course, this is not a good fit.
@@ -53,5 +56,5 @@ blablabla
 ### Pettyjohn et al. technique
 blablabla
 
-### Kawa previous limited implementation
+### Kawa restricted implementation
 blablabla
