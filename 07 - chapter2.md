@@ -41,20 +41,91 @@ The implementations described in the previous section require to directly manipu
 This section describes some implementation designed to implement first class continuations on the Java Virtual Machine.
 
 ### Heap based model
-In a typical implementation of a lexically-scoped language, a true stack is used to record call frames. Each call frame contains a return address, variable bindings, a link to the previous frame, and sometimes additional information. The variable bindings are the actual parameters of the called routine and local variables used by the called routine. A call frame is typically built by the calling routine, or caller. The caller pushes the actual parameters on the stack, a link to its stack frame, the return address, and jumps to the called routine, or callee. The callee augments the frame by pushing values of local variables. If the callee in turn calls another routine, it creates a new stack frame by pushing the actuals, frame link, and return address, and so on. When the callee has reached the end of its code, it returns to the caller by resetting the frame link, removing the frame, and jumping to the saved return address. In this manner, the state of each active call is recorded on the stack, and this state is destroyed once the call has been completed.
+In a typical implementation of a lexically-scoped language, a true stack is used to record call frames. Each call frame contains a return address, variable bindings, a link to the previous frame, and sometimes additional information. The variable bindings are the actual parameters of the called routine and local variables used by the called routine. A call frame is typically built by the calling routine, or caller. The caller pushes the actual parameters on the stack, a link to its stack frame, the return address, and jumps to the called routine, or callee. The callee augments the frame by pushing values of local variables. If the callee in turn calls another routine, it creates a new stack frame by pushing the actual parameters, frame link, and return address, and so on. When the callee has reached the end of its code, it returns to the caller by resetting the frame link, removing the frame, and jumping to the saved return address. In this manner, the state of each active call is recorded on the stack, and this state is destroyed once the call has been completed.
+
 Because of Scheme’s first-class closures and continuations, and because of restricted access of stack content on the JVM, this structure is not sufficient. First-class closures are capable of retaining argument bindings indefinitely. For this reason, it is not possible to store argument bindings in the stack frame. Instead, a heap-allocated environment is created to hold the actual parameters, and a pointer to this environment is placed in the call frame in their place. When a closure is created, a pointer to this environment is placed in the closure object.
+
 Moving the variable bindings into the heap saves the bindings from being overwritten as the stack shrinks and grows. However, first-class continuations require heap allocation of the call frames as well as the environment. This is because the natural implementation of a continuation is to retain a pointer into the call stack. Because the continuation is a first-class object, there is no restriction on when it may be invoked. In particular, it may be invoked even after control has returned from the point where it was obtained. If so, the stack may have since grown, overwriting some of the stack frames in the continuation. The natural solution, then, is to maintain a linked list of heap-allocated stack frames. As the stack grows, a new frame is allocated in an unused portion of the heap so that the old stack frames remain intact.
-The heap-based model has been used by several implementations, including Smalltalk (aside from optimizations), StacklessPython, Ruby, SML. On the JVM, this technique has been utilised by SISC, a fully R5RS compliant interpreter of Scheme, with proper tail-recursion and first-class continuations.
+
+The heap-based model has been used by several implementations, including Smalltalk, StacklessPython, Ruby, SML. On the JVM, this technique has been utilised by SISC, a fully R5RS compliant interpreter of Scheme, with proper tail-recursion and first-class continuations.
 
 ### Scala's Continuations
 An other approach to implement first-class continuations is to transform programs into continuation passing-style (CPS). Unfortunately, the standard CPS-transform is a whole-program transformation. All explicit or implicit return statements are replaced by function calls and all state is kept in closures, completely bypassing the stack. For a stack-based architecture like the JVM, of course, this is not a good fit.
-Noting that manually written CPS code shows that only a small number of functions in a program actually need to pass along continuations, Tiark Rompf, Ingo Maier and Martin Odersky developed a selective CPS transform for the Scala programming language that is applied only where it is actually needed, and allows us to stick to a regular, stack-based runtime discipline for the majority of code. As a side effect, this by design avoids the performance problems associated with implementations of delimited continuations in terms of undelimited ones.
-
-### Kilim, JavaFlow etc.
-blablabla
+Noting that manually written CPS code shows that only a small number of functions in a program actually need to pass along continuations, Tiark Rompf, Ingo Maier and Martin Odersky developed a selective CPS transform for the Scala programming language that is applied only where it is actually needed, and allows us to stick to a regular, stack-based runtime discipline for the majority of code. Thus, they made use of Scala’s pluggable typing facilities and introduce a type annotations, so that the CPS transform could be type-directed, i.e. carried out by the compiler on the basis of expression types. As a side effect, this by design avoids the performance problems associated with implementations of delimited continuations in terms of undelimited ones.
 
 ### Pettyjohn et al. technique
 blablabla
 
-### Kawa restricted implementation
-blablabla
+### Java frameworks implementing continuations
+
+#### Kilim
+The Kilim framework provides ultra-lightweight actors, a type system that guarantees memory isolation between threads and, a library with I/O support and customizable synchronization constructs and schedulers. It uses a restricted form of continuations that always transfers control to its caller but maintain an independent stack. Kilim implements a variant of direct stack inspection is generalized stack inspection (Pettyjohn et al. 2005). It transforms compiled programs at the bytecode-level, inserting copy and restore instructions to save the stack contents into a separate data structure (called a fiber) when a continuation is to be accessed. Its implementation is based on threee main architectural choices:
+
+##### Suspend-Resume
+Kilim preserves the standard call stack, but provides a way to pause (suspend) the current stack and to store it in a continuation object called Fiber. The Fiber is resumed at some future time. Calling Fiber.pause() pops (and squirrels away) activation frames until it reaches the method that initiated resume(). This pair of calls is akin to shift/reset from the literature on delimited continuations; they delimit the section of the stack to be squirrelled away.
+
+##### Schedulable Continuations
+Kilim actors are essentially thread-safe wrappers around Fibers. A scheduler chooses which Actor to resume on which kernel thread, thereby multiplexing hundreds of thousands of actors onto a handful of kernel threads. Kernel threads are treated as virtual processors while actors are viewed as agents that can migrate between kernel threads.
+
+##### Generators
+The Kilim framework also provides generators, essentially suspendable iterators. When resumed, they yield the next element and promptly pause again. Generators are intended to be used by a single actor at a time, and run on the thread-stack of that actor, which means that although the actor is technically running, it is prevented from executing any of its code until the generator yields the next element.
+
+#### JavaFlow
+The JavaFlow project uses thread-local variables to pass the continuation instead of modifying method signatures, as Kilim does. JavaFlow transforms a method if it can reach a suspend() invocation. It transforms all non-pausable methods reachable from there as well, leading to inefficiencies.
+
+#### RIFE
+
+#### PicoThreads
+
+### Kawa's continuations
+Kawa continuations are implemented using Java exceptions, and can be used for early exit, but not to implement coroutines or generators.
+```
+class callcc extends Procedure1
+{ ...;
+  public Object apply1(Object arg1)
+  {
+    Procedure proc = (Procedure) arg1;
+    Continuation cont
+       = new Continuation ();
+    try { return proc.apply1(cont); }
+    catch (CalledContinuation ex)
+      {
+        if (ex.continuation != cont)
+             throw ex;  // Re-throw.
+        return ex.value;
+      }
+    finally
+      {
+        cont.mark_invalid();
+      }
+  }
+}
+```
+ The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, which is the “current continuation”, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws up the stack until a matching handler is reached.
+
+The method `mark_invalid` marks a continuation as invalid, to detect unsupported invocation of cont after `callcc` returns. (A complete implementation of continuations would instead make sure the stacks are moved to the heap, so they can be returned to an an arbitrary future time.)
+```
+class Continuation extends Procedure1
+{ ...;
+  public Object apply1(Object arg1)
+  {
+    throw new CalledContinuation
+	      (arg1, this);
+  }
+}
+```
+A `Continuation` is the actual continuation object that is passed to `callcc`'s argument; when it is invoked, it throws a `CalledContinuation` that contains the continuation and the value returned.
+```
+class CalledContinuation
+    extends RuntimeException
+{ ...;
+  Object value;
+  Continuation continuation;
+  public CalledContinuation
+    (Object value, Continuation cont)
+  {
+    this.value = value;
+    this.continuation = cont;
+  }
+}
+```
