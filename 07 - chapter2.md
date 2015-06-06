@@ -33,9 +33,6 @@ When a continuation is captured, the stack cache is split by allocating a small 
 A throw is handled as in the incremental stack/heap strategy: the current stack cache is cleared, and some number of continuation frames are copied into it. The underflow frame at the base of the stack cache is linked to the portion of the new continuation that was not copied.
 The Hieb-Dybvig-Bruggeman strategy is a zero-overhead strategy. As with the stack strategy and the incremental stack/heap strategy, mutable variables generally cannot be allocated within a continuation frame, but continuation frames may be reused for multiple non-tail calls.
 
-### Comparison
-figure
-
 ## Alternative techniques for first class continuations on the Java Virtual Machine
 The implementations described in the previous section require to directly manipulate the stack, thus they are not suitable for being used on the Java Virtual Machine, which do not permit direct access or modification of stack contents.
 This section describes some implementation designed to implement first class continuations on the Java Virtual Machine.
@@ -51,17 +48,9 @@ The heap-based model has been used by several implementations, including Smallta
 
 ### Scala's Continuations
 An other approach to implement first-class continuations is to transform programs into continuation passing-style (CPS). The standard CPS-transform is a whole-program transformation, in which all explicit or implicit return statements are replaced by function calls and all state is kept in closures, completely bypassing the stack. For a stack-based architecture like the JVM, this is not a good fit.
-Considering that manually written CPS code shows that only a small number of functions in a program actually need to pass along continuations, Tiark Rompf, Ingo Maier and Martin Odersky developed a selective CPS transform for the Scala programming language that is applied only where it is actually needed, and allows to maintain a regular, stack-based runtime discipline for the majority of code. Thus, they made use of Scala’s pluggable typing facilities and introduce a type annotation, so that the CPS transform could be carried out by the compiler on the basis of expression types (i.e. it is a type-directed transformation). As a side effect, this by design avoids the performance problems associated with implementations of delimited continuations in terms of undelimited ones.
-
-Because of the code transformation performed by the continuations compiler plugin, there are some control constructs that can not be used when calling a CPS function.
-
-Using return statements in a CPS function is unlikely to do what you expect, and may cause type mismatch compiler errors, so you should not use them.
-
-The compiler plugin does not handle try blocks, so you can't catch exceptions within CPS code. Those exceptions will be propagated out to the enclosing reset block and can be caught there - unless the continuation is suspended and executed later, in which case any exceptions would be propagated to the reset block of the code doing that later execution.
-
-Capturing delimited continuations inside a while loop turns the loop basically into a general recursive function. Basically each invocation of shift within a looping construct allocates another stack frame, so after "looping" many times you will likely get a StackOverflowError.
-
-Some looping constructs can not be used with a shift inside them. In a reset block you can do anything, but shifts are not allowed everywhere. The limitation is that everything on the call path between a shift and its enclosing reset must be "shift-aware". That rules out the regular foreach, map and filter methods because they know nothing about continuations, so they can't call closures containing shift.
+Considering that manually written CPS code shows that only a small number of functions in a program actually need to pass along continuations, Tiark Rompf, Ingo Maier and Martin Odersky developed a selective CPS transform for the Scala programming language that is applied only where it is actually needed, and allows to maintain a regular, stack-based runtime discipline for the majority of code. Thus, they made use of Scala’s pluggable typing facilities and introduce a type annotation, so that the CPS transform could be carried out by the compiler on the basis of expression types (i.e. it is type-directed). An advantage of this technique is that by design it avoids the performance problems associated with implementations of delimited continuations in terms of undelimited ones. However, there are some drawbacks. Because of the global transformation performed by the continuations compiler plugin, there are some control constructs that can not be used when calling a CPS function.
+For instance, using return statements in a CPS function may cause type mismatch compiler errors, thus is better to avoid using them. The compiler plugin does not handle try blocks, so it is not possible to catch exceptions within CPS code.
+There are also some issues with looping constructs. Capturing delimited continuations inside a while loop turns the loop into a general recursive function. Therefore each invocation of shift within a looping construct allocates another stack frame, so after many iterations it is likely to get a stack overflow. Moreover, some looping constructs can not be used with a shift inside them, because everything on the call path between a shift and its enclosing reset must be CPS-transformed. That rules out the regular foreach, map and filter methods because they know nothing about continuations, so they can't call closures containing shift.
 
 ### Pettyjohn et al. technique
 blablabla
