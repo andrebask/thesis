@@ -1,6 +1,6 @@
 # State of the art
 
-## Classical stack-based implementation techniques for first-class continuations
+## Stack-based implementation techniques for first-class continuations
 The most common approach to implement first-class continuations is to stick with a stack-based execution architecture and to reify the current continuation by making a copy of the stack, which is reinstated when the continuation is invoked. This is the approach taken by many language implementations that are in direct control of the runtime system. This section describes the most used implementation strategies for first class continuations.
 
 ### The garbage-collection strategy
@@ -33,7 +33,7 @@ When a continuation is captured, the stack cache is split by allocating a small 
 A throw is handled as in the incremental stack/heap strategy: the current stack cache is cleared, and some number of continuation frames are copied into it. The underflow frame at the base of the stack cache is linked to the portion of the new continuation that was not copied.
 The Hieb-Dybvig-Bruggeman strategy is a zero-overhead strategy. As with the stack strategy and the incremental stack/heap strategy, mutable variables generally cannot be allocated within a continuation frame, but continuation frames may be reused for multiple non-tail calls.
 
-## Alternative techniques for first class continuations on the Java Virtual Machine
+## First class continuations on the Java Virtual Machine
 The implementations described in the previous section require to directly manipulate the stack, thus they are not suitable for being used on the Java Virtual Machine, which do not permit direct access or modification of stack contents.
 This section describes some implementation designed to implement first class continuations on the Java Virtual Machine.
 
@@ -54,7 +54,7 @@ For instance, using return statements in a CPS function may cause type mismatch 
 
 There are also some issues with looping constructs. Capturing delimited continuations inside a while loop turns the loop into a general recursive function. Therefore each invocation of shift within a looping construct allocates another stack frame, so after many iterations it is likely to get a stack overflow. Moreover, some looping constructs can not be used with a shift inside them, because everything on the call path between a shift and its enclosing reset must be CPS-transformed. That rules out the regular foreach, map and filter methods because they know nothing about continuations, so they can't call closures containing shift.
 
-### Continuations from Generalized Stack Inspection
+### Generalized Stack Inspection
 In ‘Continuations from Generalized Stack Inspection’, Pettyjohn et al. show how to translate a program into a form that allows it to capture and restore its own stack without requiring that the target machine provide stack manipulation primitives. They demonstrate an implementation that uses the native exception handling mechanism to propagate captured control state down the stack. Their basic idea is to break up the code into fragments (as top level methods) where the last instruction of any fragment is a call to the next fragment in the chain. Correspondingly, they have specialized continuation objects that maintain the state needed for each fragment and an overridden Invoke method to invoke the corresponding fragment. A generated State class per fragment knows exactly which fragment to invoke. The transform differs from continuation-passing-style in that the call/return stack continues to be the primary mechanism for representing continuations; a heap representation of the continuation is only constructed when necessary. This may result in better performance than CPS-conversion for those programs that make only occasional use of first-class continuations.
 
 This transformation preserves the calling signature of a procedure, but it augments the behavior of the procedure when a continuation is to be captured. We therefore introduce into each method an additional control path that extracts the dynamic state of the method and appends it to a data structure. To capture a continuation, we throw a special exception to return control to the method along the alternate control path. After appending the dynamic state, the method re-throws the exception. This causes the entire stack to be emptied and the corresponding chain of reified frames to be built. A handler installed at the base of the stack is the ultimate receiver of the exception and it creates a first-class continuation object in the heap using the chain of reified frames.
@@ -70,10 +70,18 @@ the process consists of six steps:
 			... (contents y) ... (set-contents! y value) ...))
 ```
 where `(make-cell x)` returns a new cell containing the value `x`, `(contents cell)` returns the value in cell, and `(set-contents! cell val)` updates cell with the new value val. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation, because values may now be freely substituted for variables without having to first check to see whether they are assigned.
-2. ANF Conversion - The code is converted to A-normal form. This exposes the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
-3. Live variable analysis - We determine which variables hold active dynamic state. Unused variables are not copied when the continuation is captured.
-4. Procedure Fragmentation - We split each method at the procedure call boundaries. This allows us to ‘re-enter’ a method right after each call site.
-5. Closure conversion - The continuation frames are closed over the live variables in the original method. We construct an explicit object that represents the closure. The ‘body’ of the closure is a procedure fragment.
+2. ANF Conversion - The code is converted to A-normal form.  Converting the code into A-normal form [@Flanagan1993] gives names to the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
+For instance, the following Scheme code shows the ANF transformation of a very simple expression:
+```
+	(f (g x) (h y))
+		=>
+	(let ((v0 (g x)))
+		(let ((v1 (h y)))
+			(f v0 v1)))
+```
+3. Live variable analysis - It will be necessary to note what variables are live at each continuation. We are only interested in those variables that are live after a procedure or method call returns. Those variables that are last used as arguments to the procedure or method call are no longer live. Unused variables are not copied when the continuation is captured.
+4. Procedure Fragmentation - Methods and procedures have a single entry point at the beginning. We create a number of procedures each of which has the effect of continuing in the middle of the original procedure. This allows us to ‘re-enter’ a method right after each call site. Each procedure fragment will make a tail-recursive call to the next fragment. Fragmentation also replaces iteration constructs with procedure calls.
+5. Closure conversion - A continuation will be composed of a series of frames. The continuation frames are closed over the live variables in the original method. Each frame also has a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment. These closures can be automatically generated if the underlying language were to support anonymous methods.
 6. Code annotation - Each procedure call is annotated by wrapping an exception handler around the call. This intercepts the special exception thrown for reifying the stack, constructs the closure object from the live variables, appends it to the accumulated stack frame chain, and re-throws the exception.
 
 ### Java frameworks implementing continuations
