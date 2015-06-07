@@ -57,10 +57,25 @@ There are also some issues with looping constructs. Capturing delimited continua
 ### Continuations from Generalized Stack Inspection
 In ‘Continuations from Generalized Stack Inspection’, Pettyjohn et al. show how to translate a program into a form that allows it to capture and restore its own stack without requiring that the target machine provide stack manipulation primitives. They demonstrate an implementation that uses the native exception handling mechanism to propagate captured control state down the stack. Their basic idea is to break up the code into fragments (as top level methods) where the last instruction of any fragment is a call to the next fragment in the chain. Correspondingly, they have specialized continuation objects that maintain the state needed for each fragment and an overridden Invoke method to invoke the corresponding fragment. A generated State class per fragment knows exactly which fragment to invoke. The transform differs from continuation-passing-style in that the call/return stack continues to be the primary mechanism for representing continuations; a heap representation of the continuation is only constructed when necessary. This may result in better performance than CPS-conversion for those programs that make only occasional use of first-class continuations.
 
+This transformation preserves the calling signature of a procedure, but it augments the behavior of the procedure when a continuation is to be captured. We therefore introduce into each method an additional control path that extracts the dynamic state of the method and appends it to a data structure. To capture a continuation, we throw a special exception to return control to the method along the alternate control path. After appending the dynamic state, the method re-throws the exception. This causes the entire stack to be emptied and the corresponding chain of reified frames to be built. A handler installed at the base of the stack is the ultimate receiver of the exception and it creates a first-class continuation object in the heap using the chain of reified frames.
+
+the process consists of six steps:
+
+1. Assignment Conversion - Assignment conversion is done after CPS conversion, and amounts to introducing
+cells to hold the values of assigned variables.7 This conversion is best explained by showing it in Scheme source code rather than CPS code:
+```
+	(lambda (x) ... x ... (set! x value) ...)
+		=>
+	(lambda (x)
+		(let ((y (make-cell x)))
+			... (contents y) ... (set-contents! y value) ...))
+```
+where `(make-cell x)` returns a new cell containing the value `x`, `(contents cell)` returns the value in cell, and `(set-contents! cell val)` updates cell with the new value val. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation (optimization) phase, because values may now be freely substituted for variables without having to first check to see whether they are assigned.
+
 ### Java frameworks implementing continuations
 
 #### Kilim
-The Kilim framework provides ultra-lightweight actors, a type system that guarantees memory isolation between threads and, a library with I/O support and customizable synchronization constructs and schedulers. It uses a restricted form of continuations that always transfers control to its caller but maintain an independent stack. Kilim implements a variant of direct stack inspection is generalized stack inspection (Pettyjohn et al. 2005). It transforms compiled programs at the bytecode-level, inserting copy and restore instructions to save the stack contents into a separate data structure (called a fiber) when a continuation is to be accessed. Its implementation is based on threee main architectural choices:
+The Kilim framework provides ultra-lightweight actors, a type system that guarantees memory isolation between threads and a library with I/O support and customizable synchronization constructs and schedulers. It uses a restricted form of continuations that always transfers control to its caller but maintain an independent stack. Kilim implements a variant of direct stack inspection is generalized stack inspection (Pettyjohn et al. 2005). It transforms compiled programs at the bytecode-level, inserting copy and restore instructions to save the stack contents into a separate data structure (called a fiber) when a continuation is to be accessed. Its implementation is based on threee main architectural choices:
 
 ##### Suspend-Resume
 Kilim preserves the standard call stack, but provides a way to pause (suspend) the current stack and to store it in a continuation object called Fiber. The Fiber is resumed at some future time. Calling Fiber.pause() pops (and squirrels away) activation frames until it reaches the method that initiated resume(). This pair of calls is akin to shift/reset from the literature on delimited continuations; they delimit the section of the stack to be squirrelled away.

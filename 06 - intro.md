@@ -9,7 +9,7 @@ This is how you insert figures using markdown. Also how to insert citations copi
 ## Java, Java 8
 
 ![Interphase and the different stages of mitosis. Figure from Walczak et al., 2010 [@Bolton2000]. \label{mitosis} ](figures/mitosis_Walczak.pdf)
- 
+
 See Figure \ref{mitosis} for a schematic illustration.
 
 You need to insert empty lines at the end of each section.....
@@ -23,3 +23,6 @@ I split up my introduction sections into different files as they were quite long
 
 ## Kawa
 Kawa stuff
+
+## Outline
+outline

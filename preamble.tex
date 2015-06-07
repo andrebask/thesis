@@ -1,11 +1,11 @@
 % Table of contents formatting
 \renewcommand{\contentsname}{Table of Contents}
 \setcounter{tocdepth}{1}
- 
-% Headers and page numbering 
+
+% Headers and page numbering
 \usepackage{fancyhdr}
 \pagestyle{plain}
- 
+
 % Fonts and typesetting
 %\setmainfont{TeX Gyre Pagella}
 %\setsansfont{Verdana}
@@ -25,7 +25,7 @@
 
 % Chapter styling
 %\usepackage[grey]{quotchap}
-%\makeatletter 
+\makeatletter
 %\renewcommand*{\chapnumfont}{%
 %  \usefont{T1}{\@defaultcnfont}{b}{n}\fontsize{80}{100}\selectfont% %Default: 100/130
 %  \color{chaptergrey}%
@@ -43,7 +43,7 @@
 \newcolumntype{x}[1]{%
 >{\centering\arraybackslash}m{#1}}%
 
-% Allow for long captions and float captions on opposite page of figures 
+% Allow for long captions and float captions on opposite page of figures
 \usepackage[rightFloats, CaptionBefore]{fltpage}
 
 % Don't let floats cross subsections
