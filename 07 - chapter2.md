@@ -61,8 +61,7 @@ This transformation preserves the calling signature of a procedure, but it augme
 
 the process consists of six steps:
 
-1. Assignment Conversion - Assignment conversion is done after CPS conversion, and amounts to introducing
-cells to hold the values of assigned variables.7 This conversion is best explained by showing it in Scheme source code rather than CPS code:
+1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound perhaps multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code rather than CPS code:
 ```
 	(lambda (x) ... x ... (set! x value) ...)
 		=>
@@ -70,7 +69,12 @@ cells to hold the values of assigned variables.7 This conversion is best explain
 		(let ((y (make-cell x)))
 			... (contents y) ... (set-contents! y value) ...))
 ```
-where `(make-cell x)` returns a new cell containing the value `x`, `(contents cell)` returns the value in cell, and `(set-contents! cell val)` updates cell with the new value val. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation (optimization) phase, because values may now be freely substituted for variables without having to first check to see whether they are assigned.
+where `(make-cell x)` returns a new cell containing the value `x`, `(contents cell)` returns the value in cell, and `(set-contents! cell val)` updates cell with the new value val. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation, because values may now be freely substituted for variables without having to first check to see whether they are assigned.
+2. ANF Conversion - The code is converted to A-normal form. This exposes the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
+3. Live variable analysis - We determine which variables hold active dynamic state. Unused variables are not copied when the continuation is captured.
+4. Procedure Fragmentation - We split each method at the procedure call boundaries. This allows us to ‘re-enter’ a method right after each call site.
+5. Closure conversion - The continuation frames are closed over the live variables in the original method. We construct an explicit object that represents the closure. The ‘body’ of the closure is a procedure fragment.
+6. Code annotation - Each procedure call is annotated by wrapping an exception handler around the call. This intercepts the special exception thrown for reifying the stack, constructs the closure object from the live variables, appends it to the accumulated stack frame chain, and re-throws the exception.
 
 ### Java frameworks implementing continuations
 
