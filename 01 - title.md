@@ -16,7 +16,7 @@
 
 
 
-  \textbf{First Class Continuations on the Java Virtual Machine: An Implementation within the Kawa Scheme Compiler}\\
+  \textbf{First-Class Continuations on the Java Virtual Machine: An Implementation within the Kawa Scheme Compiler}\\
 
 
 

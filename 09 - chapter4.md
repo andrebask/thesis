@@ -1,4 +1,4 @@
-# Implementing First Class Continuations on the JVM
+# Implementing First-Class Continuations on the JVM
 
 Write your awesome discussion here!
 
@@ -13,4 +13,3 @@ Write your awesome discussion here!
 ### Code Instrumentation
 
 ## Open problems to solve
-

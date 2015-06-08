@@ -1,4 +1,4 @@
-# First Class Continuations and the JVM
+# First-Class Continuations and the JVM
 
 intro blablabla
 
