@@ -46,7 +46,7 @@ Moving the variable bindings into the heap saves the bindings from being overwri
 
 The heap-based model has been used by several implementations, including Smalltalk, StacklessPython, Ruby, SML. On the JVM, this technique has been utilised by SISC, a fully R5RS compliant interpreter of Scheme, with proper tail-recursion and first-class continuations.
 
-### Scala's Continuations
+### Continuations from continuation passing-style transform
 An other approach to implement first-class continuations is to transform programs into continuation passing-style (CPS). The standard CPS-transform is a whole-program transformation, in which all explicit or implicit return statements are replaced by function calls and all state is kept in closures, completely bypassing the stack. For a stack-based architecture like the JVM, this is not a good fit.
 
 Considering that manually written CPS code shows that only a small number of functions in a program actually need to pass along continuations, Tiark Rompf, Ingo Maier and Martin Odersky developed a selective CPS transform for the Scala programming language that is applied only where it is actually needed, and allows to maintain a regular, stack-based runtime discipline for the majority of code. Thus, they made use of Scala’s pluggable typing facilities and introduce a type annotation, so that the CPS transform could be carried out by the compiler on the basis of expression types (i.e. it is type-directed). An advantage of this technique is that by design it avoids the performance problems associated with implementations of delimited continuations in terms of undelimited ones. However, there are some drawbacks. Because of the global transformation performed by the continuations compiler plugin, there are some control constructs that can not be used when calling a CPS function.
@@ -54,14 +54,14 @@ For instance, using return statements in a CPS function may cause type mismatch 
 
 There are also some issues with looping constructs. Capturing delimited continuations inside a while loop turns the loop into a general recursive function. Therefore each invocation of shift within a looping construct allocates another stack frame, so after many iterations it is likely to get a stack overflow. Moreover, some looping constructs can not be used with a shift inside them, because everything on the call path between a shift and its enclosing reset must be CPS-transformed. That rules out the regular foreach, map and filter methods because they know nothing about continuations, so they can't call closures containing shift.
 
-### Generalized Stack Inspection
-In ‘Continuations from Generalized Stack Inspection’, Pettyjohn et al. show how to translate a program into a form that allows it to capture and restore its own stack without requiring that the target machine provide stack manipulation primitives. They demonstrate an implementation that uses the native exception handling mechanism to propagate captured control state down the stack. Their basic idea is to break up the code into fragments (as top level methods) where the last instruction of any fragment is a call to the next fragment in the chain. Correspondingly, they have specialized continuation objects that maintain the state needed for each fragment and an overridden Invoke method to invoke the corresponding fragment. A generated State class per fragment knows exactly which fragment to invoke. The transform differs from continuation-passing-style in that the call/return stack continues to be the primary mechanism for representing continuations; a heap representation of the continuation is only constructed when necessary. This may result in better performance than CPS-conversion for those programs that make only occasional use of first-class continuations.
+### Continuations from generalized stack inspection
+In [], Pettyjohn et al. show how to translate a program into a form that allows it to capture and restore its own stack without requiring that the target machine provide stack manipulation primitives. They demonstrate an implementation that uses the native exception handling mechanism to propagate captured control state down the stack. Their basic idea is to break up the code into fragments (as top level methods) where the last instruction of any fragment is a call to the next fragment in the chain. Correspondingly, they have specialized continuation objects that maintain the state needed for each fragment and an overridden Invoke method to invoke the corresponding fragment. A generated State class per fragment knows exactly which fragment to invoke. The transform differs from continuation-passing-style in that the call/return stack continues to be the primary mechanism for representing continuations; a heap representation of the continuation is only constructed when necessary. This may result in better performance than CPS-conversion for those programs that make only occasional use of first-class continuations.
 
 This transformation preserves the calling signature of a procedure, but it augments the behavior of the procedure when a continuation is to be captured. We therefore introduce into each method an additional control path that extracts the dynamic state of the method and appends it to a data structure. To capture a continuation, we throw a special exception to return control to the method along the alternate control path. After appending the dynamic state, the method re-throws the exception. This causes the entire stack to be emptied and the corresponding chain of reified frames to be built. A handler installed at the base of the stack is the ultimate receiver of the exception and it creates a first-class continuation object in the heap using the chain of reified frames.
 
 the process consists of six steps:
 
-1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound perhaps multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code rather than CPS code:
+1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound perhaps multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code:
 ```
 	(lambda (x) ... x ... (set! x value) ...)
 		=>
@@ -79,10 +79,102 @@ For instance, the following Scheme code shows the ANF transformation of a very s
 		(let ((v1 (h y)))
 			(f v0 v1)))
 ```
+The following snippet shows the transformation for a fibonacci function in Java, considering as primitive subexpressions that can be evaluated without a method call:
+```
+	int fib (int x) {
+		if (x < 2)
+			return x;
+		else
+			return fib (x - 2) + fib (x - 1);
+    }
+		=>
+	int fib_an (int x) {
+		if (x < 2)
+			return x;
+		else {
+			int temp0 = fib_an (x - 2);
+			int temp1 = fib_an (x - 1);
+			return temp0 + temp1;
+		}
+	}
+```
 3. Live variable analysis - It will be necessary to note what variables are live at each continuation. We are only interested in those variables that are live after a procedure or method call returns. Those variables that are last used as arguments to the procedure or method call are no longer live. Unused variables are not copied when the continuation is captured.
 4. Procedure Fragmentation - Methods and procedures have a single entry point at the beginning. We create a number of procedures each of which has the effect of continuing in the middle of the original procedure. This allows us to ‘re-enter’ a method right after each call site. Each procedure fragment will make a tail-recursive call to the next fragment. Fragmentation also replaces iteration constructs with procedure calls.
+```
+    int fib_an (int x) {
+        if (x < 2)
+            return x;
+        else {
+            int temp0 = fib_an (x - 2);
+            return fib_an0 (temp0, x);
+        }
+    }
+
+    int fib_an0 (int temp0, int x) {
+        int temp1 = fib_an (x - 1);
+        return fib_an1 (temp1, temp0);
+    }
+
+    int fib_an1 (int temp1, int temp0) {
+        return temp0 + temp1;
+    }
+```
 5. Closure conversion - A continuation will be composed of a series of frames. The continuation frames are closed over the live variables in the original method. Each frame also has a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment. These closures can be automatically generated if the underlying language were to support anonymous methods.
+```
+    abstract class Frame {
+
+        abstract Object invoke(Object arg)
+			throws Throwable;
+    }
+
+	class fib_frame0 extends Frame {
+
+        int x;
+
+        fib_frame0(int x) {
+            this.x = x;
+        }
+
+        @Override
+        Object invoke(Object return_value)
+			throws ContinuationException, Throwable {
+            return fib_an0(x);
+        }
+
+    }
+```
 6. Code annotation - The fragmented code is now annotated so that it can save its state in the appropriate continuation frame. Each procedure call is surrounded by an exception handler. This intercepts the special exception thrown for reifying the stack, constructs the closure object from the live variables, appends it to the accumulated stack frame chain, and re-throws the exception. The calls in tail position are not annotated.
+```
+    int fib_an (int x) {
+        if (x < 2)
+            return x;
+        else {
+            int temp0;
+            try {
+                temp0 = fib_an (x - 2);
+            } catch (SaveContinuationException sce) {
+                sce.Extend (new fib_frame0 (x));
+                throw;
+            }
+            return fib_an0 (temp0, x);
+        }
+    }
+
+    int fib_an0 (int temp0, int x) {
+        int temp1;
+        try {
+            temp1 = fib_an (x - 1);
+        } catch (SaveContinuationException sce) {
+            sce.Extend (new fib_frame1 (temp0));
+            throw;
+        }
+        return fib_an1 (temp1, temp0);
+    }
+
+    int fib_an1 (int temp1, int temp0) {
+        return temp0 + temp1;
+    }
+```
 
 ### Java frameworks implementing continuations
 
