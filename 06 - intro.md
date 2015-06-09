@@ -4,7 +4,7 @@
 Text
 
 ## Functional programming
-Why functional programming matters [@Bolton2000; @Asai2011].
+Why functional programming matters.
 
 ## Java, Java 8
 Why java is important in the market, why it is introducing functional features.

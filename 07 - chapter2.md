@@ -53,7 +53,7 @@ This transformation preserves the calling signature of a procedure, but it augme
 
 The process consists of six steps [@StackHack2005; @Marshall2009]:
 
-1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound perhaps multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code:
+1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code:
 ```
 	(lambda (x) ... x ... (set! x value) ...)
 		=>
@@ -61,7 +61,7 @@ The process consists of six steps [@StackHack2005; @Marshall2009]:
 		(let ((y (make-cell x)))
 			... (contents y) ... (set-contents! y value) ...))
 ```
-where `(make-cell x)` returns a new cell containing the value `x`, `(contents cell)` returns the value in cell, and `(set-contents! cell val)` updates cell with the new value val. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation, because values may now be freely substituted for variables without having to first check to see whether they are assigned [@adams1986orbit].
+where `(make-cell x)` returns a new `cell` containing the value `x`, `(contents cell)` returns the value in `cell`, and `(set-contents! cell val)` updates `cell` with the new value `val`. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation, because values may now be freely substituted for variables without having to first check to see whether they are assigned [@adams1986orbit].
 2. ANF Conversion - The code is converted to A-normal form.  Converting the code into A-normal form [@Flanagan1993] gives names to the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
 For instance, the following Scheme code shows the ANF transformation of a very simple expression:
 ```
@@ -90,8 +90,8 @@ The following snippet shows the transformation for a fibonacci function in Java,
 		}
 	}
 ```
-3. Live variable analysis - It will be necessary to note what variables are live at each continuation. We are only interested in those variables that are live after a procedure or method call returns. Those variables that are last used as arguments to the procedure or method call are no longer live. Unused variables are not copied when the continuation is captured.
-4. Procedure Fragmentation - Methods and procedures have a single entry point at the beginning. We create a number of procedures each of which has the effect of continuing in the middle of the original procedure. This allows us to ‘re-enter’ a method right after each call site. Each procedure fragment will make a tail-recursive call to the next fragment. Fragmentation also replaces iteration constructs with procedure calls.
+3. Live variable analysis - It is necessary to note what variables are live at each continuation. We are only interested in those variables that are live after a procedure or method call returns. Those variables that are last used as arguments to the procedure or method call are no longer live. Unused variables are not copied when the continuation is captured.
+4. Procedure Fragmentation - For each actual procedure, we create a number of procedures each of which has the effect of continuing in the middle of the original procedure. This allows to restart execution right after each call site. Each procedure fragment will make a tail-recursive call to the next fragment. Fragmentation also replaces iteration constructs with procedure calls.
 ```
     int fib_an (int x) {
         if (x < 2)
@@ -111,7 +111,7 @@ The following snippet shows the transformation for a fibonacci function in Java,
         return temp0 + temp1;
     }
 ```
-5. Closure conversion - A continuation will be composed of a series of frames. The continuation frames are closed over the live variables in the original method. Each frame also has a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment. These closures can be automatically generated if the underlying language were to support anonymous methods.
+5. Closure conversion - A continuation is composed of a series of frames, that are closed over the live variables in the original procedure. Each frame also has a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment. These closures can be automatically generated if the underlying language were to support anonymous methods.
 ```
     abstract class Frame {
 
@@ -135,7 +135,7 @@ The following snippet shows the transformation for a fibonacci function in Java,
 
     }
 ```
-6. Code annotation - The fragmented code is now annotated so that it can save its state in the appropriate continuation frame. Each procedure call is surrounded by an exception handler. This intercepts the special exception thrown for reifying the stack, constructs the closure object from the live variables, appends it to the accumulated stack frame chain, and re-throws the exception. The calls in tail position are not annotated.
+6. Code annotation - The fragmented code is annotated so that it can save its state in the appropriate continuation frame. Each procedure call is surrounded by an exception handler. This intercepts the special exception thrown for reifying the stack, constructs the closure object from the live variables, appends it to the list of frames contained by the special exception, and re-throws the exception. The calls in tail position are not annotated.
 ```
     int fib_an (int x) {
         if (x < 2)
@@ -144,9 +144,9 @@ The following snippet shows the transformation for a fibonacci function in Java,
             int temp0;
             try {
                 temp0 = fib_an (x - 2);
-            } catch (SaveContinuationException sce) {
-                sce.Extend (new fib_frame0 (x));
-                throw;
+            } catch (ContinuationException sce) {
+                sce.extend (new fib_frame0 (x));
+                throw sce;
             }
             return fib_an0 (temp0, x);
         }
@@ -156,9 +156,9 @@ The following snippet shows the transformation for a fibonacci function in Java,
         int temp1;
         try {
             temp1 = fib_an (x - 1);
-        } catch (SaveContinuationException sce) {
-            sce.Extend (new fib_frame1 (temp0));
-            throw;
+        } catch (ContinuationException sce) {
+            sce.extend (new fib_frame1 (temp0));
+            throw sce;
         }
         return fib_an1 (temp1, temp0);
     }
@@ -171,22 +171,22 @@ The following snippet shows the transformation for a fibonacci function in Java,
 ### Java frameworks implementing continuations
 
 #### Kilim
-The Kilim framework provides ultra-lightweight actors, a type system that guarantees memory isolation between threads and a library with I/O support and customizable synchronization constructs and schedulers. It uses a restricted form of continuations that always transfers control to its caller but maintain an independent stack. Kilim implements a variant of direct stack inspection is generalized stack inspection [@Pettyjohn2005]. It transforms compiled programs at the bytecode-level, inserting copy and restore instructions to save the stack contents into a separate data structure (called a fiber) when a continuation is to be accessed. Its implementation is based on threee main architectural choices:
+The Kilim framework [@Srinivasan2006; @Bolton2000] provides lightweight actors, a type system that guarantees memory isolation between threads and a library with I/O support and synchronisation constructs and schedulers. It uses a restricted form of continuations that always transfers control to its caller but maintain an independent stack. Kilim implements a variant of direct stack inspection is generalized stack inspection [@Pettyjohn2005]. It transforms compiled programs at the bytecode-level, inserting copy and restore instructions to save the stack contents into a separate data structure (called a fiber) when a continuation is to be accessed. Its implementation is based on threee main architectural choices:
 
 ##### Suspend-Resume
-Kilim preserves the standard call stack, but provides a way to pause (suspend) the current stack and to store it in a continuation object called Fiber. The Fiber is resumed at some future time. Calling Fiber.pause() pops (and squirrels away) activation frames until it reaches the method that initiated resume(). This pair of calls is akin to shift/reset from the literature on delimited continuations; they delimit the section of the stack to be squirrelled away.
+Kilim preserves the standard call stack, but provides a way to pause (suspend) the current stack and to store it in a continuation object called Fiber. The Fiber is resumed at some future time. Calling Fiber.pause() pops activation frames until it reaches the method that initiated resume(). This pair of calls is akin to shift/reset from the literature on delimited continuations; they delimit the section of the stack to be saved.
 
 ##### Schedulable Continuations
-Kilim actors are essentially thread-safe wrappers around Fibers. A scheduler chooses which Actor to resume on which kernel thread, thereby multiplexing hundreds of thousands of actors onto a handful of kernel threads. Kernel threads are treated as virtual processors while actors are viewed as agents that can migrate between kernel threads.
+Kilim actors are essentially thread-safe wrappers around Fibers. A scheduler chooses which Actor to resume on which kernel thread. Kernel threads are treated as virtual processors while actors are viewed as agents that can migrate between kernel threads.
 
 ##### Generators
-The Kilim framework also provides generators, essentially suspendable iterators. When resumed, they yield the next element and promptly pause again. Generators are intended to be used by a single actor at a time, and run on the thread-stack of that actor, which means that although the actor is technically running, it is prevented from executing any of its code until the generator yields the next element.
+Generators are intended to be used by a single actor at a time, and run on the thread-stack of that actor. Even if the actor is running, it is prevented from executing any of its code until the generator yields the next element.
 
 #### JavaFlow
-The Apache Commons Javaflow library implements continuations using bytecode instrumentation. The instrumentation can be performed in advance or by a special class loader, which adds complexity either to the build process or to the application itself. JavaFlow transforms a method if it can reach a suspend() invocation. It transforms all non-pausable methods reachable from there as well, leading to inefficiencies, as all affected methods are modified such that they can distinguish between normal execution, continuation capturing, and continuation resuming. This adds runtime overhead even when no continuations are used.
+The Apache Commons JavaFlow [@Javaflow2015] is a library providing a continuations API for Java, accomplished via bytecode instrumentation which modifies the ordinary control flow of method calls to accomodate the ability to suspend and resume code execution at arbitrary points. JavaFlow transforms a method if it can reach a suspend() invocation. It transforms all non-pausable methods reachable from there as well, that are modified such that they can distinguish between normal execution, continuation capturing, and continuation resuming. This leads to inefficiencies, even when no continuations are used [@Stadler2009]. The instrumentation can be performed in advance or by a special class loader, which adds complexity either to the build process or to the application itself [@Srinivasan2006; @Bolton2000].
 
 #### RIFE
-RIFE is Java web application framework which allows web applications to benefit from first-class continuations. RIFE's pure Java continuation engine, which uses Java bytecode manipulation to implement continuations, has been extracted into a standalone Java library. It works similar to the Javaflow library, but it allows continuation capturing only within a specific method (`processElement`), so that there is always only one activation frame per continuation.
+RIFE [@RIFE2015] is Java web application framework which allows web applications to benefit from first-class continuations. RIFE's pure Java continuation engine, which uses Java bytecode manipulation to implement continuations, has been extracted into a standalone Java library. It works similar to the Javaflow library, but it allows continuation capturing only within a specific method (`processElement`), so that there is always only one activation frame per continuation [@Stadler2009].
 
 #### PicoThreads
 A PicoThread is a lightweight, user-level Java thread that can be cooperatively-scheduled, dispatched and suspended. PicoThreads are implemented in the Java bytecode language via a Java class-to-class translation. The translation produces threaded programs that yield control and a continuation sufficient to restart the thread where it left off. A PicoThread continuation is a Java object which contains a reference to the object and method in which it was created. Since Java’s procedure call stacks do not have dynamic extent, PicoThread continuations also contain extra state to store a method’s local variables. PicoThread continuations extend Java exceptions, so that we may take advantage of Java’s zero-cost exception mechanism to pass continuations from method to method. However the authors PicoThreads were unable to find a Java implementation fast enough to use the library effectively.
