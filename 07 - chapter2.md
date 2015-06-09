@@ -27,7 +27,7 @@ The incremental stack/heap strategy is a variation of the stack/heap strategy: W
 ### The Hieb-Dybvig-Bruggeman strategy
 A variation of the incremental stack/heap strategy that uses multiple stack segments that are allocated in the heap. The stack segment that contains the current continuation serves as the stack cache. When the stack cache overflows, a new stack cache is allocated and linked to the old one. Stack-cache underflow is handled by an underflow frame, as in the incremental stack/heap strategy. When a continuation is captured, the stack cache is split by allocating a small data structure representing the captured continuation. The data structure points to the current continuation frame within the stack cache. The unused portion of the stack cache becomes the new stack cache, and an underflow frame is installed at its base. A throw is handled as in the incremental stack/heap strategy: the current stack cache is cleared, and some number of continuation frames are copied into it. The underflow frame at the base of the stack cache is linked to the portion of the new continuation that was not copied. This is a zero-overhead strategy, in which mutable variables generally cannot be allocated within a continuation frame, but continuation frames may be reused for multiple non-tail calls [@Clinger1999].
 
-## First-class continuations on the Java Virtual Machine
+## First-class continuations on the JVM
 The implementations described in the previous section require to directly manipulate the stack, thus they are not suitable for being used on the Java Virtual Machine, which do not permit direct access or modification of stack contents. This section describes some implementation designed to implement first class continuations on the Java Virtual Machine.
 
 ### Heap based model
@@ -226,7 +226,7 @@ The continuation is marked as `invoked`, to detect unsupported invocation of con
 	    public Object apply1(CallContext ctx) {
 			if (invoked)
 				throw new GenericError
-					("implementation restriction: continuation can only be used once");
+					("Continuation can only be used once");
 	        throw new CalledContinuation (ctx.values, this, ctx);
 	    }
     }
