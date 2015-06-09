@@ -198,46 +198,52 @@ Matthias Mann’s continuations library implements continuations in Java using t
 
 ### Kawa's continuations
 Kawa provides a restricted type of continuations, that are implemented using Java exceptions, and can be used for early exit, but not to implement coroutines or generators [@Bothner1998].
+The following code, though different from the actual implementation, explains the concept:
 ```
     class callcc extends Procedure1 {
 	    ...;
-	    public Object apply1(Object arg1) {
-		    Procedure proc = (Procedure) arg1;
+	    public Object apply1(CallContext ctx) {
+		    Procedure proc = (Procedure) ctx.value1;
 		    Continuation cont
-			    = new Continuation ();
-		    try { return proc.apply1(cont); }
-		    catch (CalledContinuation ex) {
+			    = new Continuation (ctx);
+			try {
+				return proc.apply1(ctx);
+				cont.invoked = true;
+			} catch (CalledContinuation ex) {
 			    if (ex.continuation != cont)
 				    throw ex;  // Re-throw.
 			    return ex.value;
-		    } finally {
-			    cont.mark_invalid();
 		    }
 	    }
     }
 ```
- The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, that represents the current continuation, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws up the stack until a matching handler is reached.
+ The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, that represents the current continuation, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws the exception until a matching handler is reached.
 
-The method `mark_invalid` marks a continuation as invalid, to detect unsupported invocation of cont after `callcc` returns. (A complete implementation of continuations would instead make sure the stacks are moved to the heap, so they can be returned to an an arbitrary future time.)
+The continuation is marked as `invoked`, to detect unsupported invocation of cont after `callcc` returns. (A complete implementation of continuations would instead copy the stack to the heap, so it can be accessed at a later time.)
 ```
     class Continuation extends Procedure1 {
 	    ...;
-	    public Object apply1(Object arg1) {
-		    throw new CalledContinuation (arg1, this);
+	    public Object apply1(CallContext ctx) {
+			if (invoked)
+				throw new GenericError
+					("implementation restriction: continuation can only be used once");
+	        throw new CalledContinuation (ctx.values, this, ctx);
 	    }
     }
 ```
-A `Continuation` is the actual continuation object that is passed to `callcc`'s argument; when it is invoked, it throws a `CalledContinuation` that contains the continuation and the value returned.
+A `Continuation` is the actual continuation object that is passed to `callcc`; when it is invoked, it throws a `CalledContinuation` that contains the continuation and the value returned.
 ```
     class CalledContinuation
 	    extends RuntimeException {
 	    ...;
 	    Object value;
 	    Continuation continuation;
+		CallContext ctx;
 	    public CalledContinuation
-		    (Object value, Continuation cont) {
+		    (Object value, Continuation cont, CallContext ctx) {
 		    this.value = value;
 		    this.continuation = cont;
+			this.ctx = ctx;
 	    }
     }
 ```
