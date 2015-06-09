@@ -8,7 +8,7 @@ Why functional programming matters.
 
 ## Java, Java 8
 Why java is important in the market, why it is introducing functional features.
-![Interphase and the different stages of mitosis. Figure from Walczak et al., 2010 [@Bolton2000]. \label{mitosis} ](figures/mitosis_Walczak.pdf)
+![Interphase and the different stages of mitosis. Figure from Walczak et al., 2010. \label{mitosis} ](figures/mitosis_Walczak.pdf)
 
 See Figure \ref{mitosis} for a schematic illustration.
 

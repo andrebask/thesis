@@ -51,6 +51,8 @@ In [@Pettyjohn2005], Pettyjohn et al. show how to translate a program into a for
 
 This transformation preserves the calling signature of a procedure, but it augments the behavior of the procedure when a continuation is to be captured [@StackHack2005]. We therefore introduce into each method an additional control path that extracts the dynamic state of the method and appends it to a data structure. To capture a continuation, we throw a special exception to return control to the method along the alternate control path. After appending the dynamic state, the method re-throws the exception. This causes the entire stack to be emptied and the corresponding chain of reified frames to be built. A handler installed at the base of the stack is the ultimate receiver of the exception and it creates a first-class continuation object in the heap using the chain of reified frames [@Marshall2009].
 
+This implementation technique is substantially equivalent to the stack strategy described in the first section of this chapter [@StackHack2005]. Moreover, it can nearly be a zero-overhead technique, for platforms in which  exception handlers are not expensive, especially when no exception is thrown. This is the case for the Java Virtual Machine [@Longjumps2015].
+
 The process consists of six steps [@StackHack2005; @Marshall2009]:
 
 1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code:
@@ -189,60 +191,53 @@ The Apache Commons JavaFlow [@Javaflow2015] is a library providing a continuatio
 RIFE [@RIFE2015] is Java web application framework which allows web applications to benefit from first-class continuations. RIFE's pure Java continuation engine, which uses Java bytecode manipulation to implement continuations, has been extracted into a standalone Java library. It works similar to the Javaflow library, but it allows continuation capturing only within a specific method (`processElement`), so that there is always only one activation frame per continuation [@Stadler2009].
 
 #### PicoThreads
-A PicoThread is a lightweight, user-level Java thread that can be cooperatively-scheduled, dispatched and suspended. PicoThreads are implemented in the Java bytecode language via a Java class-to-class translation. The translation produces threaded programs that yield control and a continuation sufficient to restart the thread where it left off. A PicoThread continuation is a Java object which contains a reference to the object and method in which it was created. Since Java’s procedure call stacks do not have dynamic extent, PicoThread continuations also contain extra state to store a method’s local variables. PicoThread continuations extend Java exceptions, so that we may take advantage of Java’s zero-cost exception mechanism to pass continuations from method to method. However the authors PicoThreads were unable to find a Java implementation fast enough to use the library effectively.
+A PicoThread is a lightweight, user-level Java thread that can be cooperatively-scheduled, dispatched and suspended [@begel2000picothreads]. PicoThreads are implemented in the Java bytecode language via a Java class-to-class translation. The translation produces threaded programs that yield control and a continuation sufficient to restart the thread where it left off. A PicoThread continuation is a Java object which contains a reference to the object and method in which it was created. Since Java’s procedure call stacks do not have dynamic extent, PicoThread continuations also contain extra state to store a method’s local variables. PicoThread continuations extend Java exceptions, so that they can take advantage of Java’s zero-cost exception mechanism to pass continuations from method to method. However the authors PicoThreads were unable to find a Java implementation fast enough to use the library effectively.
 
 #### Matthias Mann’s continuations library
-Matthias Mann’s continuations library implements continuations in Java using the ASM bytecode manipulation and analysis framework.  The library provides an API allows to write coroutines and iterators in a sequential way.
+Matthias Mann’s continuations library implements continuations in Java using the ASM bytecode manipulation and analysis framework.  The library provides an API allows to write coroutines and iterators in a sequential way [@ContinuationsLib2015].
 
 ### Kawa's continuations
-Kawa continuations are implemented using Java exceptions, and can be used for early exit, but not to implement coroutines or generators [@Bothner1998].
+Kawa provides a restricted type of continuations, that are implemented using Java exceptions, and can be used for early exit, but not to implement coroutines or generators [@Bothner1998].
 ```
-class callcc extends Procedure1
-{ ...;
-  public Object apply1(Object arg1)
-  {
-    Procedure proc = (Procedure) arg1;
-    Continuation cont
-       = new Continuation ();
-    try { return proc.apply1(cont); }
-    catch (CalledContinuation ex)
-      {
-        if (ex.continuation != cont)
-             throw ex;  // Re-throw.
-        return ex.value;
-      }
-    finally
-      {
-        cont.mark_invalid();
-      }
-  }
-}
+    class callcc extends Procedure1 {
+	    ...;
+	    public Object apply1(Object arg1) {
+		    Procedure proc = (Procedure) arg1;
+		    Continuation cont
+			    = new Continuation ();
+		    try { return proc.apply1(cont); }
+		    catch (CalledContinuation ex) {
+			    if (ex.continuation != cont)
+				    throw ex;  // Re-throw.
+			    return ex.value;
+		    } finally {
+			    cont.mark_invalid();
+		    }
+	    }
+    }
 ```
- The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, which is the “current continuation”, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws up the stack until a matching handler is reached.
+ The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, that represents the current continuation, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws up the stack until a matching handler is reached.
 
 The method `mark_invalid` marks a continuation as invalid, to detect unsupported invocation of cont after `callcc` returns. (A complete implementation of continuations would instead make sure the stacks are moved to the heap, so they can be returned to an an arbitrary future time.)
 ```
-class Continuation extends Procedure1
-{ ...;
-  public Object apply1(Object arg1)
-  {
-    throw new CalledContinuation
-	      (arg1, this);
-  }
-}
+    class Continuation extends Procedure1 {
+	    ...;
+	    public Object apply1(Object arg1) {
+		    throw new CalledContinuation (arg1, this);
+	    }
+    }
 ```
 A `Continuation` is the actual continuation object that is passed to `callcc`'s argument; when it is invoked, it throws a `CalledContinuation` that contains the continuation and the value returned.
 ```
-class CalledContinuation
-    extends RuntimeException
-{ ...;
-  Object value;
-  Continuation continuation;
-  public CalledContinuation
-    (Object value, Continuation cont)
-  {
-    this.value = value;
-    this.continuation = cont;
-  }
-}
+    class CalledContinuation
+	    extends RuntimeException {
+	    ...;
+	    Object value;
+	    Continuation continuation;
+	    public CalledContinuation
+		    (Object value, Continuation cont) {
+		    this.value = value;
+		    this.continuation = cont;
+	    }
+    }
 ```
