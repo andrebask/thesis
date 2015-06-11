@@ -26,6 +26,8 @@ Why java is important in the market, why it is introducing functional features.
 
 See Figure \ref{lang-rank} for a schematic illustration.
 
+![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.pdf)
+
 ### Scheme
 Scheme is a dialect of the computer programming language Lisp. It follows a minimalist design philosophy that specifies a small standard core accompanied by powerful tools for meta-programming.
 
@@ -58,7 +60,44 @@ This defines a procedure add-int with two parameters: x and y are of type Java `
 The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
 
 ### Continuations
-Why continuations are usefull, why Kawa doesn't support them, note that they have been introduced in Scala, Haskell and other languages.
+The usual way to control the flow of execution of a computer program is via procedure calls and returns; a stack data structure is how high-level programming languages keep track of the point to which each active subroutine should return control when it finishes executing. However, to solve real-world problems, procedure call and primitive expressions are not enough. Thus most high-level programming languages also provide other control-flow primitives, like conditionals, loops, and exception handling.
+
+Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation.” The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme simply provides a mechanism for obtaining this continuation as a closure. The continuation, once obtained, can be used to continue, or restart, the computation from the point it was obtained, whether or not the computation has previously completed, i.e., whether or not the continuation has been used, explicitly or implicitly. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or tasks.
+
+Using the syntactic form call-with-current-continuation (usually abbreviated call/cc), a program can obtain its own continuation. This continuation is a Scheme closure that may be invoked at any time to continue the computation from the point of the call/cc . It may be invoked before or after the computation returns; it may be invoked more than one time.
+
+ The standard idiom for call/cc has an explicit lambda term as its argument:
+```
+ (call/cc (lambda (current-continuation)
+  body))
+```
+During the execution of the expression body, the variable current-continuation is bound to the current continuation. If invoked, current-continuation immediately returns from the call to call/cc, and call/cc returns whatever value was passed to current-continuation.
+
+For example, the code:
+```
+(display
+  (call/cc (lambda (cc)
+            (display "I got here.\n")
+            (cc "This string was passed to the continuation.\n")
+            (display "But not here.\n"))))
+```
+will display:
+```
+I got here.
+This string was passed to the continuation.
+```
+What makes first-class continuations so powerful is that the continuation may still be called even after the call to call/cc is finished. For example, the following causes an infinite loop that prints `Going to invoke (start)` forever:
+```
+(let ((start #f))
+
+  (if (not start)
+      (call/cc (lambda (cc)
+                 (set! start cc))))
+
+  (display "Going to invoke (start)\n")
+
+  (start))
+```
 
 ## This work
 
