@@ -43,6 +43,108 @@ Furthermore, Scheme procedures are not always named. Instead, procedures are fir
 
 The Scheme language is standardized in the Revised\textsuperscript{n} Report on the Algorithmic Language Scheme (RnRS).
 
+#### Scheme basics
+
+Scheme syntax is essential, it provides a minimal set of special forms: define, quote, lambda, cond, let/let*
+
+Define is used to define new names.
+```
+	(define x 10)
+	(define square (lambda (x) (* x x)))
+```
+Quote prevents the argument to be evaluated as an expression, returning it as literal data (symbols or lists)
+```
+	(quote hello)           => hello
+	(quote (1 2 3))         => (1 2 3)
+	'(1 2 foo bar)          => (1 2 foo bar)  ; the tick-mark ' is syntactic sugar
+```
+Lambda is used to create anonymous functions
+```
+	(lambda (x) (+ x 10)                    ; anonymous function
+	(define plus10 (lambda (x) (+ x 10)))   ; named the function now
+```
+Cond is a general conditional
+```
+	(cond
+	  ((eq? 'foo 'bar) 'hello)
+	  ((= 10 20) 'goodbye)
+	  (#t 'sorry))                  => sorry
+```
+Let is used to declare/use temporary variables
+```
+	(let ((x 10)
+		  (y 20))
+	  (+ x y))
+```
+Built-in Types are integers, rationals, floats, characters, strings, booleans, symbols, lists, and vectors.
+A set of built-in functions we can use on these types:
+```
+	;; arithmetic:  +, -, *, /
+	;; relational: <, <=, >, >=, =
+	(+ 1 2)                    => 3
+	(= 1 2)                    => #f   ; use = for numbers
+```
+Equality and identity tests:
+```
+	(eq? 'hello 'goodbye)      => #f   ; eq? is an identity test
+	(eq? 'hello 'hello)        => #t   ; two values are eq if they are the same
+	(eq? '(1 2) '(1 2))        => #f   ; object...
+	(define foo '(1 2))
+	(define foo bar)
+	(eq? foo bar)              => #t
+	(equal? foo bar)           => #t   ; two values are equal if they look the same
+	(equal? foo '(1 2))        => #t
+```
+Being a dialect of Lisp, Scheme provides a set of built-in functions for List manipulation:  cons, car, and cdr.
+```
+	;; Three equivalent ways to create the list (1 2 3), calling it foo
+	(define foo '(1 2 3))
+	(define foo (cons 1 (cons 2 (cons 3 ()))))
+	(define foo (list 1 2 3))
+
+	;; list precessing
+	(null? '(1 2))             => #f
+	(null? ())                 => #t
+	(car '(1 2))               => 1
+	(cdr '(1 2))               => (2)
+```
+Iteration via recursion
+```
+	;; Exponentiation function x^n
+	(define expt
+	(lambda (x n)
+    (if (= n 0)
+    1
+	(* x (expt x (- n 1))))))
+
+	;; List length
+	(define length
+	(lambda (lst)
+    (if (null? lst)
+    0
+	(+ 1 (length (cdr lst))))))
+```
+It is straightforward to create and use higher order functions. Indeed functions are first-class in Scheme, they can be passed as arguments to other functions.
+```
+    (define compose
+      (lambda (f g x)
+        (f (g x))))
+
+    (compose even? (lambda (x) (- x 1)) 10)   => #f
+
+    ;; takes a function and applies it to every element of a list
+    (define (map f lst)
+    (let loop ((newlst lst))
+      (cond ((pair? newlst)
+ 	    (cons (f (car newlst)) (loop (cdr newlst))))
+ 	   ((null? newlst)
+ 	    '())
+ 	   (else
+ 	    (error "second argument is not a list:"  lst)))))
+
+	(map even? '(1 2 3 4))        => (#f #t #f #t)
+```
+
 ### Kawa
 Kawa is a language framework written in Java that implements the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine.
 
