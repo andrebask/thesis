@@ -223,32 +223,39 @@ Now consider
 	    (+ (k 42) 100)))
 ``
 
-In this case, the function throws the value 42 to the continuation, but there is another computation afterwards. that computation has no effect, because when a continuation is invoked with a value, the program reinstates the invoked continuation, and the continuation which was going to take a value `x` and perform (+ x 100) has been aborted. The result is still 42.
+In this case, the function throws the value 42 to the continuation, but there is another computation afterwards. that computation has no effect, because when a continuation is invoked with a value, the program reinstates the invoked continuation, and the continuation which was going to take a value `x` and perform `(+ x 100)` has been aborted. The result is still 42.
 
-On the other hand, consider (call/cc (lambda (k) 42)). Here, the function applied to the current continuation (namely (lambda (k) 42)) does not make use of the said continuation. It returns in the “normal” way.
+On the other hand, consider
 
-Although a continuation can be called as a procedure, it is not a real function, which takes a value and returns another. An invoked continuation takes a value and does everything that follows to it, never returning a value to the caller.
+```
+	(call/cc
+	  (lambda (k) 42))
+```
+
+Here, the function applied by `call/cc` does not make use of the current continuation. It performs a real return, with the value 42.
+
+Actually, although a continuation can be called as a procedure, it is not a real function, which takes a value and returns another. An invoked continuation takes a value and does everything that follows to it, never returning a value to the caller.
 
 As an other example, consider the following code:
 
 ```
   (display
-    (call/cc (lambda (cc)
-              (display "I got here.\n")
-              (cc "This string was passed to the continuation.\n")
-              (display "But not here.\n"))))
+    (call/cc (lambda (k)
+              (display "This is executed.\n")
+              (k "Value passed to the continuation.\n")
+              (display "But not this.\n"))))
 ```
 
 it will display:
 
 ```
-  I got here.
-  This string was passed to the continuation.
+  This is executed.
+  Value passed to the continuation.
 ```
 
-What makes first-class continuations so powerful is that the continuation may still be called even after the call to call/cc is finished. When applied to a value v, a continuation k aborts its entire execution context, reinstates k as the current entire continuation, and returns the value v to the continuations k, which is "waiting for a value” in order to perform some computation with it.
+An interesting feature of first-class continuations is that the continuation may still be called even after the call to call/cc is finished. When applied to a value `v`, a continuation `k` aborts its entire execution context, reinstates `k` as the current entire continuation, and returns the value `v` to the continuations `k`, which is "waiting for a value” in order to perform some computation with it.
 
-For example, the following causes an infinite loop that prints `Going to invoke (start)` forever:
+For example, the following causes an infinite loop that prints `goto start` forever:
 
 ```
   (let ((start #f))
@@ -257,8 +264,7 @@ For example, the following causes an infinite loop that prints `Going to invoke 
         (call/cc (lambda (cc)
                    (set! start cc))))
 
-    (display "Going to invoke (start)\n")
-
+    (display "goto start\n")
     (start))
 ```
 
