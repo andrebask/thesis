@@ -190,15 +190,15 @@ The usual way to control the flow of execution of a computer program is via proc
 
 Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation.” The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme simply provides a mechanism for obtaining this continuation as a closure. The continuation, once obtained, can be used to continue, or restart, the computation from the point it was obtained, whether or not the computation has previously completed, i.e., whether or not the continuation has been used, explicitly or implicitly. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or tasks.
 
-Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for (+ 1 6) means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution.
+Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for `(+ 1 6)` means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution.
 
 Using the syntactic form call-with-current-continuation (usually abbreviated call/cc), a program can obtain its own continuation. This continuation is a Scheme closure that may be invoked at any time to continue the computation from the point of the call/cc . It may be invoked before or after the computation returns; it may be invoked more than one time.
 
 The standard idiom for call/cc has an explicit lambda term as its argument:
 
 ```
- (call/cc (lambda (current-continuation)
-  body))
+	(call/cc (lambda (current-continuation)
+	  body))
 ```
 
 During the execution of the expression body, the variable current-continuation is bound to the current continuation. If invoked, current-continuation immediately returns from the call to call/cc, and call/cc returns whatever value was passed to current-continuation.
@@ -221,7 +221,7 @@ Now consider
 	(call/cc
 	  (lambda (k)
 	    (+ (k 42) 100)))
-``
+```
 
 In this case, the function throws the value 42 to the continuation, but there is another computation afterwards. that computation has no effect, because when a continuation is invoked with a value, the program reinstates the invoked continuation, and the continuation which was going to take a value `x` and perform `(+ x 100)` has been aborted. The result is still 42.
 
@@ -239,8 +239,8 @@ Actually, although a continuation can be called as a procedure, it is not a real
 As an other example, consider the following code:
 
 ```
-  (display
-    (call/cc (lambda (k)
+	(display
+		(call/cc (lambda (k)
               (display "This is executed.\n")
               (k "Value passed to the continuation.\n")
               (display "But not this.\n"))))
@@ -249,8 +249,8 @@ As an other example, consider the following code:
 it will display:
 
 ```
-  This is executed.
-  Value passed to the continuation.
+	This is executed.
+	Value passed to the continuation.
 ```
 
 An interesting feature of first-class continuations is that the continuation may still be called even after the call to call/cc is finished. When applied to a value `v`, a continuation `k` aborts its entire execution context, reinstates `k` as the current entire continuation, and returns the value `v` to the continuations `k`, which is "waiting for a value” in order to perform some computation with it.
@@ -258,14 +258,13 @@ An interesting feature of first-class continuations is that the continuation may
 For example, the following causes an infinite loop that prints `goto start` forever:
 
 ```
-  (let ((start #f))
-
-    (if (not start)
+	(let ((start #f))
+      (if (not start)
         (call/cc (lambda (cc)
                    (set! start cc))))
 
-    (display "goto start\n")
-    (start))
+      (display "goto start\n")
+      (start))
 ```
 
 ## This work
