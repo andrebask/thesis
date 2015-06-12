@@ -49,57 +49,75 @@ The Scheme language is standardized in the Revised\textsuperscript{n} Report on 
 
 Scheme syntax is essential, it provides a minimal set of special forms: define, quote, lambda, cond, let/let*
 
-Define is used to define new names.
+`define` is used to define new names.
+
 ```
 	(define x 10)
 	(define square (lambda (x) (* x x)))
 ```
-Quote prevents the argument to be evaluated as an expression, returning it as literal data (symbols or lists)
+
+`quote` prevents the argument to be evaluated as an expression, returning it as literal data (symbols or lists).
+
 ```
 	(quote hello)           => hello
 	(quote (1 2 3))         => (1 2 3)
-	'(1 2 foo bar)          => (1 2 foo bar)  ; the tick-mark ' is syntactic sugar
+
+	; the tick-mark ' is syntactic sugar
+	'(1 2 foo bar)          => (1 2 foo bar)
 ```
-Lambda is used to create anonymous functions
+
+`lambda` is used to create anonymous functions.
+
 ```
 	(lambda (x) (+ x 10)                    ; anonymous function
 	(define plus10 (lambda (x) (+ x 10)))   ; named the function now
 ```
-Cond is a general conditional
+
+`cond` is a general conditional.
+
 ```
 	(cond
 	  ((eq? 'foo 'bar) 'hello)
 	  ((= 10 20) 'goodbye)
 	  (#t 'sorry))                  => sorry
 ```
-Let is used to declare/use temporary variables
+
+`let` is used to declare/use temporary variables.
+
 ```
 	(let ((x 10)
 		  (y 20))
 	  (+ x y))
 ```
-Built-in Types are integers, rationals, floats, characters, strings, booleans, symbols, lists, and vectors.
+
+Built-in types are integers, rationals, floats, characters, strings, booleans, symbols, lists, and vectors.
 A set of built-in functions we can use on these types:
+
 ```
 	;; arithmetic:  +, -, *, /
 	;; relational: <, <=, >, >=, =
 	(+ 1 2)                    => 3
 	(= 1 2)                    => #f   ; use = for numbers
 ```
+
 Equality and identity tests:
+
 ```
 	(eq? 'hello 'goodbye)      => #f   ; eq? is an identity test
-	(eq? 'hello 'hello)        => #t   ; two values are eq if they are the same
-	(eq? '(1 2) '(1 2))        => #f   ; object...
+	(eq? 'hello 'hello)        => #t
+	(eq? '(1 2) '(1 2))        => #f
 	(define foo '(1 2))
 	(define foo bar)
 	(eq? foo bar)              => #t
-	(equal? foo bar)           => #t   ; two values are equal if they look the same
+	(equal? foo bar)           => #t   ; equality: they look the same
 	(equal? foo '(1 2))        => #t
 ```
+
 Being a dialect of Lisp, Scheme provides a set of built-in functions for List manipulation:  cons, car, and cdr.
+
 ```
-	;; Three equivalent ways to create the list (1 2 3), calling it foo
+	;; Three equivalent ways to create the list (1 2 3),
+	;; calling it foo
 	(define foo '(1 2 3))
 	(define foo (cons 1 (cons 2 (cons 3 ()))))
 	(define foo (list 1 2 3))
@@ -110,23 +128,27 @@ Being a dialect of Lisp, Scheme provides a set of built-in functions for List ma
 	(car '(1 2))               => 1
 	(cdr '(1 2))               => (2)
 ```
-Iteration via recursion
+
+Iteration via recursion:
+
 ```
 	;; Exponentiation function x^n
 	(define expt
-	(lambda (x n)
-    (if (= n 0)
-    1
-	(* x (expt x (- n 1))))))
+	  (lambda (x n)
+        (if (= n 0)
+		  1
+	      (* x (expt x (- n 1))))))
 
 	;; List length
 	(define length
-	(lambda (lst)
-    (if (null? lst)
-    0
-	(+ 1 (length (cdr lst))))))
+	  (lambda (lst)
+        (if (null? lst)
+          0
+	      (+ 1 (length (cdr lst))))))
 ```
-It is straightforward to create and use higher order functions. Indeed functions are first-class in Scheme, they can be passed as arguments to other functions.
+
+It is straightforward to create and use higher order functions. Indeed functions are first-class in Scheme, they can be passed as arguments to other functions:
+
 ```
     (define compose
       (lambda (f g x)
@@ -153,10 +175,12 @@ Kawa is a language framework written in Java that implements the programming lan
 Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation,and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
 
 To aid with type inference and type checking, Kawa supports optional type specifiers, which are specified using two colons. For example:
+
 ```
 	(define (add-int x::int y::int) :: String
 		(String (+ x y)))
 ```
+
 This defines a procedure add-int with two parameters: x and y are of type Java `int`; the return type is a `java.lang.String`.
 
 The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
@@ -166,39 +190,76 @@ The usual way to control the flow of execution of a computer program is via proc
 
 Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation.” The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme simply provides a mechanism for obtaining this continuation as a closure. The continuation, once obtained, can be used to continue, or restart, the computation from the point it was obtained, whether or not the computation has previously completed, i.e., whether or not the continuation has been used, explicitly or implicitly. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or tasks.
 
+Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for (+ 1 6) means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution.
+
 Using the syntactic form call-with-current-continuation (usually abbreviated call/cc), a program can obtain its own continuation. This continuation is a Scheme closure that may be invoked at any time to continue the computation from the point of the call/cc . It may be invoked before or after the computation returns; it may be invoked more than one time.
 
- The standard idiom for call/cc has an explicit lambda term as its argument:
+The standard idiom for call/cc has an explicit lambda term as its argument:
+
 ```
  (call/cc (lambda (current-continuation)
   body))
 ```
+
 During the execution of the expression body, the variable current-continuation is bound to the current continuation. If invoked, current-continuation immediately returns from the call to call/cc, and call/cc returns whatever value was passed to current-continuation.
 
-For example, the code:
-```
-(display
-  (call/cc (lambda (cc)
-            (display "I got here.\n")
-            (cc "This string was passed to the continuation.\n")
-            (display "But not here.\n"))))
-```
-will display:
-```
-I got here.
-This string was passed to the continuation.
-```
-What makes first-class continuations so powerful is that the continuation may still be called even after the call to call/cc is finished. For example, the following causes an infinite loop that prints `Going to invoke (start)` forever:
-```
-(let ((start #f))
+When applied to a function f, call/cc captures and aborts the entire continuation k, reinstate a copy of k, and applies f to k.
 
-  (if (not start)
-      (call/cc (lambda (cc)
-                 (set! start cc))))
+Consider a first example:
 
-  (display "Going to invoke (start)\n")
+```
+	(call/cc
+	  (lambda (k)
+		(k 42)))
+```
 
-  (start))
+This applies call/cc to the function `(lambda (k) (k 42))`; which is called with argument `k`, the current continuation. Being the body of the function `(k 42)`, the continuation is thrown the value 42. This makes the `call/cc` return the value 42. Hence, the entire expression evaluates to 42.
+
+Now consider
+
+```
+	(call/cc
+	  (lambda (k)
+	    (+ (k 42) 100)))
+``
+
+In this case, the function throws the value 42 to the continuation, but there is another computation afterwards. that computation has no effect, because when a continuation is invoked with a value, the program reinstates the invoked continuation, and the continuation which was going to take a value `x` and perform (+ x 100) has been aborted. The result is still 42.
+
+On the other hand, consider (call/cc (lambda (k) 42)). Here, the function applied to the current continuation (namely (lambda (k) 42)) does not make use of the said continuation. It returns in the “normal” way.
+
+Although a continuation can be called as a procedure, it is not a real function, which takes a value and returns another. An invoked continuation takes a value and does everything that follows to it, never returning a value to the caller.
+
+As an other example, consider the following code:
+
+```
+  (display
+    (call/cc (lambda (cc)
+              (display "I got here.\n")
+              (cc "This string was passed to the continuation.\n")
+              (display "But not here.\n"))))
+```
+
+it will display:
+
+```
+  I got here.
+  This string was passed to the continuation.
+```
+
+What makes first-class continuations so powerful is that the continuation may still be called even after the call to call/cc is finished. When applied to a value v, a continuation k aborts its entire execution context, reinstates k as the current entire continuation, and returns the value v to the continuations k, which is "waiting for a value” in order to perform some computation with it.
+
+For example, the following causes an infinite loop that prints `Going to invoke (start)` forever:
+
+```
+  (let ((start #f))
+
+    (if (not start)
+        (call/cc (lambda (cc)
+                   (set! start cc))))
+
+    (display "Going to invoke (start)\n")
+
+    (start))
 ```
 
 ## This work
