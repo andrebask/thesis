@@ -20,13 +20,27 @@ The world is full of stateful objects. The machine you program itself is a state
 However, there are several programming problems in the world that are easy to map to the FP model. Problems involving large data sets, multi-processing are easy to map to the FP model. In practice, however, problems involving large data sets and multi-processing also require maximum efficiency, and the FP languages in use today cannot match frameworks that take some of the best practices in FP programming and use them in imperative languages. For instance, you can see the MapReduce/Hadoop frameworks as implementing FP in C++ and Java with the aim of providing maximum performance in a distributed environment without paying the cognitive or interpretive overhead of a typical FP language.
 
 ### Java
-Why java is important in the market, why it is introducing functional features.
+Java is a general-purpose programming language that is concurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible. Java code can run on all platforms that support Java without the need for recompilation.Java applications are typically compiled to bytecode that can run on any Java virtual machine (JVM) regardless of computer architecture. As of 2015, Java is one of the most popular programming languages in use [@TIOBEIndex2015] (see Figures \ref{lang-rank} and \ref{history-rank}). Java was originally developed by James Gosling at Sun Microsystems and released in 1995. The language derives much of its syntax from C and C++, but it has fewer low-level facilities than either of them.
+
+The reference implementation Java compilers, virtual machines, and class libraries were open-sourced in May 2007 under the GNU General Public License.
 
 ![TIOBE Index for June 2015 [@TIOBEIndex2015] \label{lang-rank} ](figures/ranking.png)
 
-See Figure \ref{lang-rank} for a schematic illustration.
-
 ![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.pdf)
+
+#### Java 8
+Starting from Java 8, java supports aspects of functional programming.
+
+#### The Java Virtual Machine
+A Java virtual machine (JVM) is an abstract computing machine defined by a specification. The specification formally describes what is required of a JVM implementation. Having a single specification ensures all implementations are interoperable. A JVM implementation is a software platform that meets the requirements of the JVM specification in a compliant and preferably performant manner.
+
+One design goal of Java is portability, that is achieved by compiling the Java language code to an intermediate representation called Java bytecode, instead of directly to architecture-specific machine code. Java bytecode instructions are analogous to machine code, but they are intended to be executed by a virtual machine (VM) written specifically for the host hardware. End users commonly use a Java Runtime Environment (JRE) installed on their own machine for standalone Java applications, or in a web browser for Java applets.
+
+Standardized libraries provide a generic way to access host-specific features such as graphics, threading, and networking.
+
+A major benefit of using bytecode is porting. However, the overhead of interpretation means that interpreted programs almost always run more slowly than programs compiled to native executables would. Just-in-Time (JIT) compilers were introduced from an early stage that compile bytecodes to machine code during runtime. Java is platform independent. But as Java virtual machine must convert Java bytecode into machine language which depends on the operating system being used, it is platform dependent.[33]
+
+The Oracle Corporation, which owns the Java trademark, distributes the Java Virtual Machine implementation HotSpot together with an implementation of the Java Class Library under the name Java Runtime Environment (JRE).
 
 ### Scheme
 Scheme is a dialect of the computer programming language Lisp. It follows a minimalist design philosophy that specifies a small standard core accompanied by powerful tools for meta-programming.
@@ -158,13 +172,13 @@ It is straightforward to create and use higher order functions. Indeed functions
 
     ;; takes a function and applies it to every element of a list
     (define (map f lst)
-    (let loop ((newlst lst))
-      (cond ((pair? newlst)
- 	    (cons (f (car newlst)) (loop (cdr newlst))))
- 	   ((null? newlst)
- 	    '())
- 	   (else
- 	    (error "second argument is not a list:"  lst)))))
+      (let loop ((newlst lst))
+        (cond ((pair? newlst)
+ 	      (cons (f (car newlst)) (loop (cdr newlst))))
+ 	     ((null? newlst)
+ 	      '())
+ 	     (else
+ 	      (error "second argument is not a list:"  lst)))))
 
 	(map even? '(1 2 3 4))        => (#f #t #f #t)
 ```
@@ -184,6 +198,8 @@ To aid with type inference and type checking, Kawa supports optional type specif
 This defines a procedure add-int with two parameters: x and y are of type Java `int`; the return type is a `java.lang.String`.
 
 The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
+
+\iffalse TODO add something \fi
 
 ### Continuations
 The usual way to control the flow of execution of a computer program is via procedure calls and returns; a stack data structure is how high-level programming languages keep track of the point to which each active subroutine should return control when it finishes executing. However, to solve real-world problems, procedure call and primitive expressions are not enough. Thus most high-level programming languages also provide other control-flow primitives, like conditionals, loops, and exception handling.
