@@ -53,23 +53,23 @@ Examples:
 
 In Java, lambda expressions are represented as objects, and so they must be bound to a particular object type known as a functional interface. A functional interface is an interface that defines exactly one abstract method. An extremely valuable property of functional interfaces is that they can be instantiated using lambdas.
 
-An example of a functional Interface is `java.lang.Runnable`. There is only one method void `run()` declared in Runnable interface. Before Java 8, anonymous inner classes were used to instantiate objects of functional interface. With Lambda expressions, this can be simplified.
+An example of a functional interface is `java.lang.Runnable`. It has only one method void `run()` declared. Before Java 8, anonymous inner classes were used to instantiate objects of functional interface. With Lambda expressions, this can be simplified.
 
 Each lambda expression can be implicitly assigned to one functional interface. For example we can create Runnable interface’s reference from lambda expression like below:
 
 ```
-	Runnable r = () -> System.out.println("hello world");
+	Runnable r = () -> System.out.println("running");
 ```
 
-This type of conversion is automatically taken care by compiler when we dont specify the functional interface. For example:
+This type of conversion is automatically handled by the compiler when we dont specify the functional interface. For example:
 
 ```
 	new Thread(
-		() -> System.out.println("hello world")
+		() -> System.out.println("running")
 	).start();
 ```
 
-So in above code, compiler automatically deduced that lambda expression can be casted to Runnable interface from `Thread` class’s constructor signature public `Thread(Runnable r) { }`.
+So in above code, compiler automatically deduced that lambda expression can be casted to Runnable interface from `Thread` class’s constructor signature `public Thread(Runnable r) { }`.
 
 Few examples of lambda expressions and their functional interface:
 
