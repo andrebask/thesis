@@ -9,7 +9,7 @@
 ## Context
 
 ### Functional programming
-It is well known that the modern computers are not becoming "faster" like they used to be, because frequency scaling, for now, hit the limit. They increase their potential productivity by adding cores.
+It is well known that the modern computers are not improving their performance like in the past decades, because frequency scaling, for silicon, has reached a limit. They increase their potential productivity by adding cores.
 
 This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is way harder than sequential programming, due to a lot of new challenges it brings. Functional programming (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and methods without side effects. The learning curve for functional programming is often steep, but the learning curve for parallel programming might be even steeper, and not at all intuitive.
 
@@ -76,12 +76,59 @@ Few examples of lambda expressions and their functional interface:
 ```
 	Consumer<Integer>  c = (int x) -> { System.out.println(x) };
 
-	BiConsumer<Integer, String> b = (Integer x, String y) -> System.out.println(x + " : " + y);
+	BiConsumer<Integer, String> b = (Integer x, String y)
+		                              -> System.out.println(x + y);
 
 	Predicate<String> p = (String s) -> { s == null };
 ```
 
+With the addition of Lambda expressions to arrays operations, Java introduced a key concept into the language of internal iteration. Using that paradigm, the actual iteration over a collection on which a Lambda function is applied is now carried out by the core library itself. An relevant possibility opened by this design pattern is to enable operations carried out on long arrays (such as sorting, filtering and mapping) to be carried out in parallel by the framework. For example:
 
+```
+	List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+	// old way
+	for (int number : numbers) {
+		System.out.println(number);
+	}
+
+	// new way
+	numbers.forEach(value -> System.out.println(value));
+```
+
+In Java 8 it is also possible to reference both a static and an instance a method using the new `::` operator:
+
+```
+	numbers.forEach(System.out::println);
+```
+
+Passing a lambda expression to another function allows to pass not only values but also behaviours and this enables to project more generic, flexible and reusable API. For instance declaring the following method:
+
+```
+
+	public void evaluate(List<integer> list,
+		                 Predicate<integer> predicate) {
+        for(Integer n: list)  {
+            if(predicate.test(n)) {
+                System.out.println(n + " ");
+            }
+        }
+    }
+```
+
+We can use the `Predicate` functional interface to create a test and print the elements that pass the test:
+
+```
+	System.out.println("Print all numbers:");
+	evaluate(numbers, (n)->true);
+
+	System.out.println("Print even numbers:");
+	evaluate(numbers, (n)-> n%2 == 0 );
+
+	System.out.println("Print odd numbers:");
+	evaluate(numbers, (n)-> n%2 == 1 );
+
+```
 
 #### The Java Virtual Machine
 A Java virtual machine (JVM) is an abstract computing machine defined by a specification. The specification formally describes what is required of a JVM implementation. Having a single specification ensures all implementations are interoperable. A JVM implementation is a software platform that meets the requirements of the JVM specification in a compliant and preferably performant manner [@JVMWiki2015].
