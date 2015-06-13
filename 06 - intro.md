@@ -2,9 +2,9 @@
 
 #Introduction
 
-> *Programming languages are not just technology, but what programmers think in. They're half technology and half religion.*
+> *"Programming languages are not just technology, but what programmers think in. They're half technology and half religion."*
 
-> Paul Graham - "Beating the Averages"
+> Paul Graham, Beating the Averages
 
 ## Context
 
@@ -105,7 +105,6 @@ In Java 8 it is also possible to reference both a static and an instance a metho
 Passing a lambda expression to another function allows to pass not only values but also behaviours and this enables to project more generic, flexible and reusable API. For instance declaring the following method:
 
 ```
-
 	public void evaluate(List<integer> list,
 		                 Predicate<integer> predicate) {
         for(Integer n: list)  {
@@ -128,6 +127,18 @@ We can use the `Predicate` functional interface to create a test and print the e
 	System.out.println("Print odd numbers:");
 	evaluate(numbers, (n)-> n%2 == 1 );
 
+```
+
+Java 8 brings to developers another interesting feature from functional programming: Streams, that is, lazy evaluation. Streams are a new abstraction that allows to process data in a declarative way. You can create a Stream from any Collection by invoking the `stream()` method on it. A Stream provides an interface to a sequenced set of values of a specific element type. However, streams don’t actually store elements; they are computed on demand. They consume from a data-providing source such as collections, arrays, or I/O resources and support common operations, such as filter, map, reduce, find, match, sorted. Furthermore, many stream operations return a stream themselves. This allows operations to be chained to form a larger pipeline, enabling also certain optimisations.
+
+```
+	System.out.println(
+	    numbers.stream()
+		    .filter(Lazy::isEven)
+		    .map(Lazy::doubleIt)
+		    .filter(Lazy::isGreaterThan5)
+		    .findFirst()
+	);
 ```
 
 #### The Java Virtual Machine
