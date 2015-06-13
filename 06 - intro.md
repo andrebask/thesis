@@ -55,7 +55,7 @@ In Java, lambda expressions are represented as objects, and so they must be boun
 
 An example of a functional interface is `java.lang.Runnable`. It has only one method void `run()` declared. Before Java 8, anonymous inner classes were used to instantiate objects of functional interface. With Lambda expressions, this can be simplified.
 
-Each lambda expression can be implicitly assigned to one functional interface. For example we can create Runnable interface’s reference from lambda expression like below:
+Each lambda expression can be implicitly assigned to one functional interface. For example we can create `Runnable` interface’s reference from lambda expression like below:
 
 ```
 	Runnable r = () -> System.out.println("running");
