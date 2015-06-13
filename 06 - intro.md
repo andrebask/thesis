@@ -11,13 +11,11 @@
 ### Functional programming
 It is well known that the modern computers are not becoming "faster" like they used to be, because frequency scaling, for now, hit the limit. They increase their potential productivity by adding cores.
 
-This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is way harder than sequential programming, due to a lot of new challenges it brings.
+This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is way harder than sequential programming, due to a lot of new challenges it brings. Functional programming (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and methods without side effects.  The learning curve for functional programming is often steep, but the learning curve for parallel programming might be even steeper, and not at all intuitive.
 
-Functional programming helps to get rid of some of these challenges, e.g. race conditions don't apply if you only use immutable variables and methods without side effects. The learning curve for functional programming is often steep, but the learning curve for parallel programming might be even steeper, and not at all intuitive.
+FP is often used in synergy with other programming paradigms, because the world is made of stateful objects, while functional programming uses a mainly stateless computation model. Functional programming has ways to model state, but there is an essential mismatch in a stateless model trying to represent a stateful world.
 
-The world is full of stateful objects. The machine you program itself is a stateful machine. Sure, functional programming has ways to model state, but there's a deep impedance mismatch between a stateless model being implemented on a stateful machine trying to emulate a stateful world.
-
-However, there are several programming problems in the world that are easy to map to the FP model. Problems involving large data sets, multi-processing are easy to map to the FP model. In practice, however, problems involving large data sets and multi-processing also require maximum efficiency, and the FP languages in use today cannot match frameworks that take some of the best practices in FP programming and use them in imperative languages. For instance, you can see the MapReduce/Hadoop frameworks as implementing FP in C++ and Java with the aim of providing maximum performance in a distributed environment without paying the cognitive or interpretive overhead of a typical FP language.
+However, there are several programming problems in the world that are easy to map to the FP model. Problems involving concurrency, parallelism, large data sets and multi-processing.
 
 ### Java
 Java is a general-purpose programming language that is concurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible. Java code can run on all platforms that support Java without the need for recompilation.Java applications are typically compiled to bytecode that can run on any Java virtual machine (JVM) regardless of computer architecture. As of 2015, Java is one of the most popular programming languages in use [@TIOBEIndex2015] (see Figures \ref{lang-rank} and \ref{history-rank}). Java was originally developed by James Gosling at Sun Microsystems and released in 1995. The language derives much of its syntax from C and C++, but it has fewer low-level facilities than either of them [@JavaWiki2015].
@@ -53,7 +51,7 @@ Examples:
 	() -> { return 3.1415 };
 ```
 
-In Java, the lambda expressions are represented as objects, and so they must be bound to a particular object type known as a functional interface. A functional interface is an interface that defines exactly one abstract method. An extremely valuable property of functional interfaces is that they can be instantiated using lambdas.
+In Java, lambda expressions are represented as objects, and so they must be bound to a particular object type known as a functional interface. A functional interface is an interface that defines exactly one abstract method. An extremely valuable property of functional interfaces is that they can be instantiated using lambdas.
 
 #### The Java Virtual Machine
 A Java virtual machine (JVM) is an abstract computing machine defined by a specification. The specification formally describes what is required of a JVM implementation. Having a single specification ensures all implementations are interoperable. A JVM implementation is a software platform that meets the requirements of the JVM specification in a compliant and preferably performant manner [@JVMWiki2015].
