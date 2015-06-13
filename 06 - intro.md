@@ -81,6 +81,8 @@ Few examples of lambda expressions and their functional interface:
 	Predicate<String> p = (String s) -> { s == null };
 ```
 
+
+
 #### The Java Virtual Machine
 A Java virtual machine (JVM) is an abstract computing machine defined by a specification. The specification formally describes what is required of a JVM implementation. Having a single specification ensures all implementations are interoperable. A JVM implementation is a software platform that meets the requirements of the JVM specification in a compliant and preferably performant manner [@JVMWiki2015].
 
