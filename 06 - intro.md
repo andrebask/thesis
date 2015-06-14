@@ -153,6 +153,13 @@ One of the main goals of Java design is portability, and Java is indeed platform
 The Oracle Corporation, which owns the Java trademark, distributes the Java Virtual Machine implementation HotSpot together with an implementation of the Java Class Library under the name Java Runtime Environment (JRE).
 
 #### JVM based Languages
+The JVM is not only for Java. Several hundred JVM programming languages are available to be run on it. These languages ultimately compile to bytecode in class files, which the JVM can then execute.
+
+Some JVM languages include more features than Java and aim to let developers write code in a more concise way. features like collection literals, pattern matching, and a more sophisticated type inference were the motivation for languages such as Scala, Groovy, Xtend, Ceylon, Kotlin, and Fantom.
+
+Then there are existing languages that were ported to the JVM. Python, Erlang, Ruby, Scheme and Javscript, for instance, all have an implementation targeting the JVM (respectively Jython, Erjang, JRuby, Kawa and Rhino). Another popular language ported to the JVM is Clojure, a dialect of Lisp  with an emphasis on functional and concurrent programming [@JVMWiki2015].
+
+Many less-known JVM languages implement new research ideas, are suited only for a specific domain, or are just experimental.
 
 ### Scheme
 Scheme is a dialect of the computer programming language Lisp. It follows a minimalist design philosophy that specifies a small standard core accompanied by powerful tools for meta-programming.
@@ -405,7 +412,7 @@ Once the execution of the `shift`'s body is completed, the continuation is disca
 invokes `(k 4)` first, which produces 8 as result, and then `(k 8)`, which returns 16. At this point, the shift expression has terminated, and the rest of the reset expression is discarded. Therefore, the final result is 16.
 
 ### Kawa
-Kawa is a language framework written in Java that implements the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine.
+Kawa is a language framework written in Java that implements an extended version of the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine.
 
 Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation,and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
 
@@ -420,7 +427,34 @@ This defines a procedure add-int with two parameters: x and y are of type Java `
 
 The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
 
-\iffalse TODO add something \fi
+Kawa Scheme has several extensions for dealing with java objects. It allows to call methods of java objects/classes, create objects and implement classes and interfaces.
+
+For example, the following is Kawa code for an instance of a anonymous class:
+```
+   (object (<java.lang.Runnable>)
+     ((run) <void>
+	   (display "running!\n")))
+```
+
+Here a simple class definition:
+
+```
+	(define-simple-class Person ()
+	  (last ::String)
+	  (first ::String)
+	  ((*init* f l)
+	   (set! first f)
+	   (set! last l))
+	  ((sayHello)
+	   (display "Hello ")
+	   (display (string-append first
+                               " "
+                               last
+                               "!\n"))))
+
+	(let ((p (Person "Alyssa" "P. Hacker")))
+	  (p:sayHello)) ; => Hello Alyssa P. Hacker!
+```
 
 ## This work
 
