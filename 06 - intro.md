@@ -9,7 +9,9 @@
 ## Context
 
 ### Functional programming
-It is well known that the modern computers are not improving their performance like in the past decades, because frequency scaling, for silicon, has reached a limit. They increase their potential productivity by adding cores.
+It is well known that the modern computers are not improving their performance like in the past decades, because frequency scaling, for silicon, has reached a limit. They increase their potential productivity by adding cores [@TurnConcurrency2015].
+
+![Intel CPU Trends [@TurnConcurrency2015] \label{cpu-freq} ](figures/cpu.png)
 
 This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is way harder than sequential programming, due to a lot of new challenges it brings. Functional programming (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and methods without side effects. The learning curve for functional programming is often steep, but the learning curve for parallel programming might be even steeper, and not at all intuitive.
 
