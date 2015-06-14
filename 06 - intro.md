@@ -13,9 +13,9 @@ It is well known that the modern computers are not improving their performance l
 
 ![Intel CPU Trends [@TurnConcurrency2015] \label{cpu-freq} ](figures/cpu.png)
 
-This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is way harder than sequential programming, due to a lot of new challenges it brings. Functional programming (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and methods without side effects. The learning curve for functional programming is often steep, but the learning curve for parallel programming might be even steeper, and not at all intuitive.
+This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is quite harder than sequential programming, due to several new challenges it brings. *Functional programming* (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and methods without side effects. The learning curve for functional programming is often steep, but parallel programming is not intuitive ans its learning curve might be even steeper.
 
-FP is often used in synergy with other programming paradigms, because the world is made of stateful objects, while functional programming uses a mainly stateless computation model. Functional programming has ways to model state, but there is an essential mismatch in a stateless model trying to represent a stateful world.
+Functional programming is often used in synergy with other programming paradigms, since the world is made of stateful objects, while FP uses a mainly stateless computation model. FP has ways to model state, but there is an essential mismatch in a stateless model trying to represent a stateful world.
 
 However, there are several programming problems in the world that are easy to map to the FP model. Problems involving concurrency, parallelism, large data sets and multi-processing.
 
@@ -29,9 +29,9 @@ The reference implementation Java compilers, virtual machines, and class librari
 ![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.pdf)
 
 #### Java 8
-Starting from Java 8, java supports aspects of functional programming. Two core concepts introduced in Java 8 are Lambda expressions and functional interfaces.
+Starting from Java 8, java supports aspects of functional programming. Two core concepts introduced in Java 8 are lambda expressions and functional interfaces.
 
-A Lambda expression is an anonymous function that can be declared with a comma separated list of the formal parameters enclosed in parentheses, an arrow token (->), and a body. Data types of the parameters can always be omitted, as can the parentheses if there is only one parameter. The body can consist of a single statement or a statement block.
+A lambda expression is an anonymous function that can be declared with a comma separated list of the formal parameters enclosed in parentheses, an arrow token (->), and a body. Data types of the parameters can always be omitted, as can the parentheses if there is only one parameter. The body can consist of a single statement or a statement block.
 
 Syntax:
 
@@ -50,7 +50,7 @@ Examples:
 
 	(String s) -> { System.out.println(s); }
 
-	() -> { return 3.1415 };
+	() -> { return 2.7182 };
 ```
 
 In Java, lambda expressions are represented as objects, and so they must be bound to a particular object type known as a functional interface. A functional interface is an interface that defines exactly one abstract method. An extremely valuable property of functional interfaces is that they can be instantiated using lambdas.
@@ -155,7 +155,7 @@ The Oracle Corporation, which owns the Java trademark, distributes the Java Virt
 #### JVM based Languages
 The JVM is not only for Java. Several hundred JVM programming languages are available to be run on it. These languages ultimately compile to bytecode in class files, which the JVM can then execute.
 
-Some JVM languages include more features than Java and aim to let developers write code in a more concise way. features like collection literals, pattern matching, and a more sophisticated type inference were the motivation for languages such as Scala, Groovy, Xtend, Ceylon, Kotlin, and Fantom.
+Some JVM languages include more features than Java and aim to let developers write code in a more concise way. features like collection literals, pattern matching, and a more sophisticated type inference were the motivation for languages such as Scala, Groovy, Xtend, Ceylon, Kotlin, and Fantom [@JVMLang2015].
 
 Then there are existing languages that were ported to the JVM. Python, Erlang, Ruby, Scheme and Javscript, for instance, all have an implementation targeting the JVM (respectively Jython, Erjang, JRuby, Kawa and Rhino). Another popular language ported to the JVM is Clojure, a dialect of Lisp  with an emphasis on functional and concurrent programming [@JVMWiki2015].
 
@@ -459,4 +459,16 @@ Here a simple class definition:
 ## This work
 
 ## Outline
-outline
+The following chapters are organized as follows. Chapter 2 provides a survey of related work. It discusses common techniques for implementing `call/cc` present in literature. Then it also compares different approaches to implement first-class continuations on the JVM.
+
+Chapter 3 presents the issues in delivering first-class continuations on the JVM, as well as the limitations of the existing implementations.
+
+Chapter 4 describes the details of the code transformation technique employed to enable the capture and resume of first-class continuations .
+
+Chapter 5 demonstrates the viability of the design by providing an implementation of the entire transformation.
+
+Chapter 6 shows how the proposed implementation can be used to add debugging facilities to Kawa, and to implement new control flow constructs.
+
+Chapter 7 provides a performance evaluation and discusses practical issues inherent in this approach. The advantages and limitations of this approach are also discussed in detail.
+
+Finally, Chapter 6 summarizes the contributions of this thesis and discusses possible future work to address remaining challenges.
