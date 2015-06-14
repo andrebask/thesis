@@ -295,24 +295,6 @@ It is straightforward to create and use higher order functions. Indeed functions
 	(map even? '(1 2 3 4))        => (#f #t #f #t)
 ```
 
-### Kawa
-Kawa is a language framework written in Java that implements the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine.
-
-Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation,and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
-
-To aid with type inference and type checking, Kawa supports optional type specifiers, which are specified using two colons. For example:
-
-```
-	(define (add-int x::int y::int) :: String
-		(String (+ x y)))
-```
-
-This defines a procedure add-int with two parameters: x and y are of type Java `int`; the return type is a `java.lang.String`.
-
-The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
-
-\iffalse TODO add something \fi
-
 ### Continuations
 The usual way to control the flow of execution of a computer program is via procedure calls and returns; a stack data structure is how high-level programming languages keep track of the point to which each active subroutine should return control when it finishes executing. However, to solve real-world problems, procedure call and primitive expressions are not enough. Thus most high-level programming languages also provide other control-flow primitives, like conditionals, loops, and exception handling.
 
@@ -400,9 +382,45 @@ Continuations captured by `call/cc` is the whole continuation that includes all 
 
 A continuation is delimited when it produces an intermediate answer rather than the final outcome of the entire computation. In other words, a delimited continuation is a representation of the "rest of the computation" from the current computation up to a designated boundary. Unlike regular continuations, delimited continuations return a value, and thus may be reused and composed [@kiselyov2007delimited].
 
-Various operators for delimited continuations have been proposed in the research literature, such as `prompt` and `control`, `shift` and `reset`, `cupto`, `fcontrol`, and others [@RacketContinuations2015].
+Various operators for delimited continuations have been proposed in the research literature, such as `prompt` and `control`, `shift` and `reset`, `cupto`, `fcontrol`, and others [@RacketContinuations2015]. In this introduction we will consider only the `shift` and `reset` operator.
 
-The reset operator sets the limit for the continuation while the shift operator captures or reifies the current continuation up to the innermost enclosing reset. For example, consider the following snippet in Scheme:
+The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The shift operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that shift produces is provided to the innermost reset, discarding the continuation in between the reset and shift. The continuation, if invoked, effectively reinstates the entire computation up to the reset. When the computation is completed, the result is returned by the delimited continuation. For example, consider the following snippet in Scheme:
+
+```
+	(* 2 (reset (+ 1 (shift k (k 5)))))
+```
+
+The `reset` delimits the continuation that `shift` captures. When this code is executed, the use of `shift` will bind `k` to the continuation `(+ 1 [])` where `[]` represents the part of the computation that is to be filled with a value. This is exactly the code that surrounds the shift up to the reset. Since the body of shift immediately invokes the continuation, the previous expression is equivalent to the following:
+
+```
+	(* 2 (+ 1 5))
+```
+
+Once the execution of the `shift`'s body is completed, the continuation is discarded, and execution restarts outside reset. For instance:
+
+```
+	(reset (* 2 (shift k (k (k 4)))))
+```
+
+invokes `(k 4)` first, which produces 8 as result, and then `(k 8)`, which returns 16. At this point, the shift expression has terminated, and the rest of the reset expression is discarded. Therefore, the final result is 16.
+
+### Kawa
+Kawa is a language framework written in Java that implements the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine.
+
+Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation,and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
+
+To aid with type inference and type checking, Kawa supports optional type specifiers, which are specified using two colons. For example:
+
+```
+	(define (add-int x::int y::int) :: String
+		(String (+ x y)))
+```
+
+This defines a procedure add-int with two parameters: x and y are of type Java `int`; the return type is a `java.lang.String`.
+
+The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
+
+\iffalse TODO add something \fi
 
 ## This work
 
