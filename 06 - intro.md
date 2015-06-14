@@ -461,7 +461,7 @@ Our main contribution is an implementation of `call/cc` in a Scheme compiler tar
 
 We address the problem of .
 
-We present an extension of the compiler.
+We present an extension of the compiler .
 
 ## Outline
 The following chapters are organized as follows. Chapter 2 provides a survey of related work. It discusses common techniques for implementing `call/cc` present in literature. Then it also compares different approaches to implement first-class continuations on the JVM.
