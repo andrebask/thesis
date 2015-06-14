@@ -384,7 +384,7 @@ A continuation is delimited when it produces an intermediate answer rather than 
 
 Various operators for delimited continuations have been proposed in the research literature, such as `prompt` and `control`, `shift` and `reset`, `cupto`, `fcontrol`, and others [@RacketContinuations2015]. In this introduction we will consider only the `shift` and `reset` operator.
 
-The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The shift operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that shift produces is provided to the innermost reset, discarding the continuation in between the reset and shift. The continuation, if invoked, effectively reinstates the entire computation up to the reset. When the computation is completed, the result is returned by the delimited continuation. For example, consider the following snippet in Scheme:
+The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The shift operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that shift produces is provided to the innermost reset, discarding the continuation in between the reset and shift. The continuation, if invoked, effectively reinstates the entire computation up to the reset. When the computation is completed, the result is returned by the delimited continuation [@DelimitedWiki2015]. For example, consider the following snippet in Scheme:
 
 ```
 	(* 2 (reset (+ 1 (shift k (k 5)))))
