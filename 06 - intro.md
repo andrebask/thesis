@@ -456,7 +456,12 @@ Here a simple class definition:
 	  (p:sayHello)) ; => Hello Alyssa P. Hacker!
 ```
 
-## This work
+## Thesis Contributions
+Our main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementation targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby supports `call/cc` JRuby does not support it.
+
+We address the problem of .
+
+We present an extension of the compiler.
 
 ## Outline
 The following chapters are organized as follows. Chapter 2 provides a survey of related work. It discusses common techniques for implementing `call/cc` present in literature. Then it also compares different approaches to implement first-class continuations on the JVM.
