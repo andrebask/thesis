@@ -56,6 +56,7 @@ This implementation technique is substantially equivalent to the stack strategy 
 The process consists of six steps [@StackHack2005; @Marshall2009]:
 
 1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code:
+
 ```
 	(lambda (x) ... x ... (set! x value) ...)
 		=>
@@ -63,9 +64,11 @@ The process consists of six steps [@StackHack2005; @Marshall2009]:
 		(let ((y (make-cell x)))
 			... (contents y) ... (set-contents! y value) ...))
 ```
+
 where `(make-cell x)` returns a new `cell` containing the value `x`, `(contents cell)` returns the value in `cell`, and `(set-contents! cell val)` updates `cell` with the new value `val`. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation, because values may now be freely substituted for variables without having to first check to see whether they are assigned [@adams1986orbit].
 2. ANF Conversion - The code is converted to A-normal form (ANF).  Converting the code into A-normal form [@Flanagan1993] gives names to the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
 For instance, the following Scheme code shows the ANF transformation of a very simple expression:
+
 ```
 	(f (g x) (h y))
 		=>
@@ -73,7 +76,9 @@ For instance, the following Scheme code shows the ANF transformation of a very s
 		(let ((v1 (h y)))
 			(f v0 v1)))
 ```
+
 The following snippet shows the transformation for a fibonacci function in Java, considering as primitive subexpressions that can be evaluated without a method call:
+
 ```
 	int fib (int x) {
 		if (x < 2)
@@ -92,8 +97,10 @@ The following snippet shows the transformation for a fibonacci function in Java,
 		}
 	}
 ```
+
 3. Live variable analysis - We need to identify what variables are live at each continuation, i.e. at each fragment call. We are only interested in those variables that are live after a procedure or method call returns. For instance, in the previous code snippet, just before the last statement, `temp0` and `temp1` are alive, because they are used to compute the result to be returned. Conversely, `x` is no more live (is dead) as it is not used in the last statement. Unused or dead variables are not copied when the continuation is captured.
 4. Procedure Fragmentation - For each actual procedure, we create a number of procedures each of which has the effect of continuing in the middle of the original procedure. This allows to restart execution right after each call site. Each procedure fragment will make a tail-recursive call to the next fragment. Fragmentation also replaces iteration constructs with procedure calls.
+
 ```
     int fib_an (int x) {
         if (x < 2)
@@ -113,7 +120,9 @@ The following snippet shows the transformation for a fibonacci function in Java,
         return temp0 + temp1;
     }
 ```
+
 5. Closure conversion - A continuation is composed of a series of frames, that are closed over the live variables in the original procedure. Each frame also has a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment. These closures can be automatically generated if the underlying language were to support anonymous methods.
+
 ```
     abstract class Frame {
 
@@ -137,7 +146,9 @@ The following snippet shows the transformation for a fibonacci function in Java,
 
     }
 ```
+
 6. Code annotation - The fragmented code is annotated so that it can save its state in the appropriate continuation frame. Each procedure call is surrounded by an exception handler. This intercepts the special exception thrown for reifying the stack, constructs the closure object from the live variables, appends it to the list of frames contained by the special exception, and re-throws the exception. The calls in tail position are not annotated.
+
 ```
     int fib_an (int x) {
         if (x < 2)
@@ -199,6 +210,7 @@ Matthias Mann’s continuations library implements continuations in Java using t
 ### Kawa's continuations
 Kawa provides a restricted type of continuations, that are implemented using Java exceptions, and can be used for early exit, but not to implement coroutines or generators [@Bothner1998].
 The following code, though different from the actual implementation, explains the concept:
+
 ```
     class callcc extends Procedure1 {
 	    ...;
@@ -217,9 +229,11 @@ The following code, though different from the actual implementation, explains th
 	    }
     }
 ```
- The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, that represents the current continuation, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws the exception until a matching handler is reached.
+
+The `Procedure` that implements `call-with-current-continuation` creates a continuation object `cont`, that represents the current continuation, and passes it to the incoming Procedure `proc`. If `callcc` catches a `CalledContinuation` exception it means that `proc` invoked some `Continuation`. If it is the continuation of the current `callcc` instance, the code returns the value passed to the continuation; otherwise it re-throws the exception until a matching handler is reached.
 
 The continuation is marked as `invoked`, to detect unsupported invocation of cont after `callcc` returns. (A complete implementation of continuations would instead copy the stack to the heap, so it can be accessed at a later time.)
+
 ```
     class Continuation extends Procedure1 {
 	    ...;
@@ -231,7 +245,9 @@ The continuation is marked as `invoked`, to detect unsupported invocation of con
 	    }
     }
 ```
+
 A `Continuation` is the actual continuation object that is passed to `callcc`; when it is invoked, it throws a `CalledContinuation` that contains the continuation and the value returned.
+
 ```
     class CalledContinuation
 	    extends RuntimeException {
