@@ -457,7 +457,7 @@ Here a simple class definition:
 ```
 
 ## Thesis Contributions
-Our main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementation targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby has `callcc`, JRuby does not support it.
+Our main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementation targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby has `callcc`, JRuby does not support it.
 
 We address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
 
@@ -474,6 +474,6 @@ Chapter 5 demonstrates the viability of the design by providing an implementatio
 
 Chapter 6 shows how the proposed implementation can be used to add debugging facilities to Kawa, and to implement new control flow constructs.
 
-Chapter 7 provides a performance evaluation and discusses practical issues inherent in this approach. The advantages and limitations of this approach are also discussed in detail.
+Chapter 7 provides a performance evaluation and discusses some issues related this approach. The advantages and limitations of this approach are also discussed in detail.
 
-Finally, Chapter 6 summarizes the contributions of this thesis and discusses possible future work to address remaining challenges.
+Finally, Chapter 6 summarizes the contributions of this thesis and discusses possible future work.
