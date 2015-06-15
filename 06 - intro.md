@@ -309,20 +309,20 @@ Computer programs usually control the flow of execution via procedure calls and 
 
 Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation”. The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme provides a mechanism for capturing this continuation as a closure. The obtained continuation can be used to continue, or resume, the computation from the point it was captured, whether or not the computation has previously completed. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or generators [@dybvig1987three].
 
-Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for `(+ 1 6)` means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution.
+Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for `(+ 1 6)` means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution [@PageCallcc2015].
 
-Using the syntactic form call-with-current-continuation (usually abbreviated call/cc), a program can obtain its own continuation. This continuation is a Scheme closure that may be invoked at any time to continue the computation from the point of the call/cc . It may be invoked before or after the computation returns; it may be invoked more than one time.
+Using the syntactic form `call-with-current-continuation` (usually abbreviated `call/cc`), a program can obtain its own continuation. This continuation is a Scheme closure that may be invoked at any time to continue the computation from the point of the `call/cc`. It may be invoked before or after the computation returns; it may be invoked more than one time.
 
-The standard idiom for call/cc has an explicit lambda term as its argument:
+The standard idiom for `call/cc` has an explicit lambda term as its argument:
 
 ```
 	(call/cc (lambda (current-continuation)
 	  body))
 ```
 
-During the execution of the expression body, the variable current-continuation is bound to the current continuation. If invoked, current-continuation immediately returns from the call to call/cc, and call/cc returns whatever value was passed to current-continuation.
+During the execution of the expression body, the variable current-continuation is bound to the current continuation. If invoked, current-continuation immediately returns from the call to `call/cc`, and `call/cc` returns whatever value was passed to current-continuation.
 
-When applied to a function f, call/cc captures and aborts the entire continuation k, reinstate a copy of k, and applies f to k.
+When applied to a function `f`, `call/cc` captures and aborts the entire continuation `k`, reinstate a copy of `k`, and applies `f` to `k`.
 
 Consider a first example:
 
@@ -332,7 +332,7 @@ Consider a first example:
 		(k 42)))
 ```
 
-This applies call/cc to the function `(lambda (k) (k 42))`; which is called with argument `k`, the current continuation. Being the body of the function `(k 42)`, the continuation is thrown the value 42. This makes the `call/cc` return the value 42. Hence, the entire expression evaluates to 42.
+This applies `call/cc` to the function `(lambda (k) (k 42))`, which is called with argument `k`, the current continuation. Being the body of the function `(k 42)`, the continuation is thrown the value 42. This makes the `call/cc` return the value 42. Hence, the entire expression evaluates to 42.
 
 Now consider
 
