@@ -3,8 +3,9 @@
 #Introduction
 
 > *"Programming languages are not just technology, but what programmers think in. They're half technology and half religion."*
-
-> Paul Graham, Beating the Averages
+\begin{flushright}
+Paul Graham, Beating the Averages
+\end{flushright}
 
 ## Context
 
@@ -20,7 +21,7 @@ Functional programming is often used in synergy with other programming paradigms
 However, there are several programming problems in the world that are easy to map to the FP model. Problems involving concurrency, parallelism, large data sets and multi-processing.
 
 ### Java
-Java is a general-purpose programming language that is concurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible. Java code can run on all platforms that support Java without the need for recompilation. Java applications are typically compiled to bytecode that can run on any Java virtual machine (JVM) regardless of computer architecture. As of 2015, Java is one of the most popular programming languages in use [@TIOBEIndex2015] (see Figures \ref{lang-rank} and \ref{history-rank}). Java was originally developed by James Gosling at Sun Microsystems and released in 1995. The language derives much of its syntax from C and C++, but it has fewer low-level facilities than either of them [@JavaWiki2015].
+*Java* is a general-purpose programming language that is concurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible. Java code can run on all platforms that support Java without the need for recompilation. Java applications are typically compiled to bytecode that can run on any *Java Virtual Machine* (JVM) regardless of computer architecture. As of 2015, Java is one of the most popular programming languages in use [@TIOBEIndex2015] (see Figures \ref{lang-rank} and \ref{history-rank}). Java was originally developed by James Gosling at Sun Microsystems and released in 1995. The language derives much of its syntax from C and C++, but it has fewer low-level facilities than either of them [@JavaWiki2015].
 
 The reference implementation Java compilers, virtual machines, and class libraries were open-sourced in May 2007 under the GNU General Public License.
 
@@ -29,7 +30,7 @@ The reference implementation Java compilers, virtual machines, and class librari
 ![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.pdf)
 
 #### Java 8
-Starting from Java 8, java supports aspects of functional programming. Two core concepts introduced in Java 8 are lambda expressions and functional interfaces.
+Starting from Java 8, java supports aspects of functional programming. Two core concepts introduced in Java 8 are *lambda expressions* and *functional interfaces* [@OracleLambda2015].
 
 A lambda expression is an anonymous function that can be declared with a comma separated list of the formal parameters enclosed in parentheses, an arrow token (->), and a body. Data types of the parameters can always be omitted, as can the parentheses if there is only one parameter. The body can consist of a single statement or a statement block.
 
@@ -71,7 +72,7 @@ This type of conversion is automatically handled by the compiler when we dont sp
 	).start();
 ```
 
-So in above code, compiler automatically deduced that lambda expression can be casted to Runnable interface from `Thread` class’s constructor signature `public Thread(Runnable r) { }`.
+In above code, compiler automatically deduced that lambda expression can be casted to Runnable interface from `Thread` class’s constructor signature `public Thread(Runnable r) { }`.
 
 Few examples of lambda expressions and their functional interface:
 
@@ -84,7 +85,7 @@ Few examples of lambda expressions and their functional interface:
 	Predicate<String> p = (String s) -> { s == null };
 ```
 
-With the addition of Lambda expressions to arrays operations, Java introduced a key concept into the language of internal iteration. Using that paradigm, the actual iteration over a collection on which a Lambda function is applied is now carried out by the core library itself. An relevant possibility opened by this design pattern is to enable operations carried out on long arrays (such as sorting, filtering and mapping) to be carried out in parallel by the framework. For example:
+With the addition of Lambda expressions to arrays operations, Java introduced a key concept into the language of internal iteration. Using that paradigm, the actual iteration over a collection on which a Lambda function is applied is now carried out by the core library itself [@WhyLambda2013]. An relevant possibility opened by this design pattern is to enable operations carried out on long arrays (such as sorting, filtering and mapping) to be carried out in parallel by the framework. For example:
 
 ```
 	List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -117,7 +118,7 @@ Passing a lambda expression to another function allows to pass not only values b
     }
 ```
 
-We can use the `Predicate` functional interface to create a test and print the elements that pass the test:
+we can use the `Predicate` functional interface to create a test and print the elements that pass the test:
 
 ```
 	System.out.println("Print all numbers:");
@@ -162,19 +163,20 @@ Then there are existing languages that were ported to the JVM. Python, Erlang, R
 Many less-known JVM languages implement new research ideas, are suited only for a specific domain, or are just experimental.
 
 ### Scheme
-Scheme is a dialect of the computer programming language Lisp. It follows a minimalist design philosophy that specifies a small standard core accompanied by powerful tools for meta-programming.
+*Scheme* is a dialect of the computer programming language Lisp. It follows a minimalist design philosophy that specifies a small standard core accompanied by powerful tools for meta-programming.
 
-Scheme was created during the 1970s at the MIT AI Lab by Guy L. Steele and Gerald Jay Sussman. It was the first dialect of Lisp to choose lexical scope and the first to require implementations to perform tail-call optimisation. It was also one of the first programming languages to support first-class continuations.
+Scheme was created during the 1970s at the MIT AI Lab by Guy L. Steele and Gerald Jay Sussman. It was the first dialect of Lisp to choose lexical scope and the first to require implementations to perform tail-call optimisation. It was also one of the first programming languages to support first-class continuations [@SchemeWiki2015].
 
-Scheme is a general-purpose computer programming language. It is a high-level language, supporting operations on structured data such as strings, lists, and vectors, as well as operations on more traditional data such as numbers and characters. Scheme is a fairly simple language to learn, since it is based on a handful of syntactic forms and semantic concepts and since the interactive nature of most implementations encourages experimentation.
+Scheme is a general-purpose computer programming language. It is a high-level language, supporting operations on structured data such as strings, lists, and vectors, as well as operations on more traditional data such as numbers and characters. Scheme is a fairly simple language to learn, since it is based on a handful of syntactic forms and semantic concepts and since the interactive nature of most implementations encourages experimentation [@dybvig2009scheme].
 
-The storage required to hold the contents of an object is dynamically allocated as necessary and retained until no longer needed, then automatically deallocated, typically by a garbage collector that periodically recovers the storage used by inaccessible objects. Simple atomic values, such as small integers, characters, booleans, and the empty list, are typically represented as immediate values and thus incur no allocation or deallocation overhead.
+The storage required to hold the contents of an object is dynamically allocated as necessary and retained until no longer needed, then automatically deallocated, typically by a garbage collector. Simple atomic values, such as small integers, characters, booleans, and the empty list, are represented as primitive types and thus incur no allocation or deallocation overhead [@dybvig2009scheme].
 
-Scheme programs share a common printed representation with Scheme data structures. As a result, any Scheme program has a natural and obvious internal representation as a Scheme object. For example, variables and syntactic keywords correspond to symbols, while structured syntactic forms correspond to lists. This representation is the basis for the syntactic extension facilities provided by Scheme for the definition of new syntactic forms in terms of existing syntactic forms and procedures. It also facilitates the implementation of interpreters, compilers, and other program transformation tools for Scheme directly in Scheme, as well as program transformation tools for other languages in Scheme.
+Scheme is *homoiconic*, i.e,  programs share a common representation with Scheme data structures. As a result, any Scheme program has an internal representation as a Scheme object. For example, variables and syntactic keywords correspond to symbols, while structured syntactic forms correspond to lists. This representation is the basis for the syntactic extension facilities provided by Scheme for the definition of new syntactic forms. It also facilitates the implementation of interpreters, compilers, and other program transformation tools [@dybvig2009scheme].
 
 In Scheme, a procedure definition may appear within another block or procedure, and the procedure may be invoked at any time thereafter, even if the enclosing block has completed its execution. To support lexical scoping, a procedure carries the lexical context (environment) along with its code.
 
-Furthermore, Scheme procedures are not always named. Instead, procedures are first-class data objects like strings or numbers, and variables are bound to procedures in the same way they are bound to other objects.
+Furthermore
+orover, Scheme provides anonymous procedures. Indeed procedures are first-class data objects like strings or numbers, and variables are bound to procedures in the same way they are bound to other objects.
 
 The Scheme language is standardized in the Revised\textsuperscript{n} Report on the Algorithmic Language Scheme (RnRS).
 
