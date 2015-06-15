@@ -372,7 +372,7 @@ it will display:
 	Value passed to the continuation.
 ```
 
-An interesting feature of first-class continuations is that the continuation may still be called even after the call to call/cc is finished. When applied to a value `v`, a continuation `k` aborts its entire execution context, reinstates `k` as the current entire continuation, and returns the value `v` to the continuations `k`, which is "waiting for a value” in order to perform some computation with it.
+An interesting feature of first-class continuations is that the continuation may still be called even after the call to call/cc is finished. When applied to a value `v`, a continuation `k` aborts its entire execution context, reinstates `k` as the current entire continuation, and returns the value `v` to the continuations `k`, which is "waiting for a value” in order to perform some computation with it. In some Scheme implementations, the value passed to a continuation can be a void one.
 
 For example, the following causes an infinite loop that prints `goto start` forever:
 
