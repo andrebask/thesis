@@ -307,7 +307,7 @@ It is straightforward to create and use higher order functions. Indeed functions
 ### Continuations
 Computer programs usually control the flow of execution via procedure calls and returns; a stack of frames is how high-level programming languages keep track of the point to which each active subroutine should return control when it finishes executing. However, to solve real-world problems, procedure call and primitive expressions are not enough. Thus most high-level programming languages also provide other control-flow primitives, like conditionals, loops, and exception handling.
 
-Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation”. The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme provides a mechanism for capturing this continuation as a closure. The obtained continuation can be used to continue, or resume, the computation from the point it was captured, whether or not the computation has previously completed. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or generators [@dybvig1987three].
+Scheme also supports *first-class continuations*. A continuation is a Scheme function that embodies “the rest of the computation”. The continuation of any Scheme expression determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme provides a mechanism for capturing this continuation as a closure. The obtained continuation can be used to continue, or resume, the computation from the point it was captured, whether or not the computation has previously completed. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or generators [@dybvig1987three].
 
 Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for `(+ 1 6)` means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution.
 
@@ -389,34 +389,34 @@ For example, the following causes an infinite loop that prints `goto start` fore
 ```
 
 #### Delimited Continuations
-Continuations captured by `call/cc` is the whole continuation that includes all the future computation. In some cases, we want to manipulate only a part of computation. This is possible with a kind of continuations called delimited or partial continuations [@Asai2011].
+Continuations captured by `call/cc` is the whole continuation that includes all the future computation. In some cases, we want to manipulate only a part of computation. This is possible with a kind of continuations called *delimited* or *composable* continuations [@Asai2011].
 
 A continuation is delimited when it produces an intermediate answer rather than the final outcome of the entire computation. In other words, a delimited continuation is a representation of the "rest of the computation" from the current computation up to a designated boundary. Unlike regular continuations, delimited continuations return a value, and thus may be reused and composed [@kiselyov2007delimited].
 
 Various operators for delimited continuations have been proposed in the research literature, such as `prompt` and `control`, `shift` and `reset`, `cupto`, `fcontrol`, and others [@RacketContinuations2015]. In this introduction we will consider only the `shift` and `reset` operator.
 
-The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The shift operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that shift produces is provided to the innermost reset, discarding the continuation in between the reset and shift. The continuation, if invoked, effectively reinstates the entire computation up to the reset. When the computation is completed, the result is returned by the delimited continuation [@DelimitedWiki2015]. For example, consider the following snippet in Scheme:
+The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The `shift` operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that `shift` produces is provided to the innermost `reset`, discarding the continuation in between the `reset` and `shift`. The continuation, if invoked, effectively reinstates the entire computation up to the `reset`. When the computation is completed, the result is returned by the delimited continuation [@DelimitedWiki2015]. For example, consider the following snippet in Scheme:
 
 ```
 	(* 2 (reset (+ 1 (shift k (k 5)))))
 ```
 
-The `reset` delimits the continuation that `shift` captures. When this code is executed, the use of `shift` will bind `k` to the continuation `(+ 1 [])` where `[]` represents the part of the computation that is to be filled with a value. This is exactly the code that surrounds the shift up to the reset. Since the body of shift immediately invokes the continuation, the previous expression is equivalent to the following:
+The `reset` delimits the continuation that `shift` captures. When this code is executed, the use of `shift` will bind `k` to the continuation `(+ 1 [])` where `[]` represents the part of the computation that is to be filled with a value. This is exactly the code that surrounds the `shift` up to the `reset`. Since the body of `shift` immediately invokes the continuation, the previous expression is equivalent to the following:
 
 ```
 	(* 2 (+ 1 5))
 ```
 
-Once the execution of the `shift`'s body is completed, the continuation is discarded, and execution restarts outside reset. For instance:
+Once the execution of the `shift`'s body is completed, the continuation is discarded, and execution restarts outside `reset`. For instance:
 
 ```
 	(reset (* 2 (shift k (k (k 4)))))
 ```
 
-invokes `(k 4)` first, which produces 8 as result, and then `(k 8)`, which returns 16. At this point, the shift expression has terminated, and the rest of the reset expression is discarded. Therefore, the final result is 16.
+invokes `(k 4)` first, which produces 8 as result, and then `(k 8)`, which returns 16. At this point, the `shift` expression has terminated, and the rest of the `reset` expression is discarded. Therefore, the final result is 16.
 
 ### Kawa
-Kawa is a language framework written in Java that implements an extended version of the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine.
+*Kawa* is a language framework written in Java that implements an extended version of the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine [@Kawa2015]. The author and project leader of Kawa is Per Bothner, who started its development in 1996.
 
 Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation,and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
 
@@ -429,7 +429,7 @@ To aid with type inference and type checking, Kawa supports optional type specif
 
 This defines a procedure add-int with two parameters: x and y are of type Java `int`; the return type is a `java.lang.String`.
 
-The Kawa runtime start-up is much faster than other scripting languages based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which (if executed frequently) may be compiled to native code by the just-in-time (JIT) compiler.
+The Kawa runtime start-up is quite fast for a language based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which may be compiled to native code by the just-in-time (JIT) compiler.
 
 Kawa Scheme has several extensions for dealing with java objects. It allows to call methods of java objects/classes, create objects and implement classes and interfaces.
 
@@ -472,7 +472,7 @@ The following chapters are organized as follows. Chapter 2 provides a survey of 
 
 Chapter 3 presents the issues in delivering first-class continuations on the JVM, as well as the limitations of the existing implementations.
 
-Chapter 4 describes the details of the code transformation technique employed to enable the capture and resume of first-class continuations .
+Chapter 4 describes the details of the code transformation technique employed to enable the capture and resume of first-class continuations.
 
 Chapter 5 demonstrates the viability of the design by providing an implementation of the entire transformation.
 
