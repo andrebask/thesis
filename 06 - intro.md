@@ -194,7 +194,7 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 `quote` prevents the argument to be evaluated as an expression, returning it as literal data (symbols or lists).
 
 ```
-	(quote hello)           => hello
+	(quote hi!)           => hi!
 	(quote (1 2 3))         => (1 2 3)
 
 	; the tick-mark ' is syntactic sugar
@@ -204,8 +204,8 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 `lambda` is used to create anonymous functions.
 
 ```
-	(lambda (x) (+ x 10)                    ; anonymous function
-	(define plus10 (lambda (x) (+ x 10)))   ; named the function now
+	(lambda (x) (* x 10)                    ; anonymous function
+	(define times10 (lambda (x) (* x 10)))   ; named the function now
 ```
 
 `cond` is a general conditional.
@@ -214,7 +214,7 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 	(cond
 	  ((eq? 'foo 'bar) 'hello)
 	  ((= 10 20) 'goodbye)
-	  (#t 'sorry))                  => sorry
+	  (else 'sorry))                  => sorry
 ```
 
 `let` is used to declare/use temporary variables.
@@ -232,7 +232,7 @@ A set of built-in functions we can use on these types:
 	;; arithmetic:  +, -, *, /
 	;; relational: <, <=, >, >=, =
 	(+ 1 2)                    => 3
-	(= 1 2)                    => #f   ; use = for numbers
+	(= 1 2)                    => #f   ; '=' is for numbers
 ```
 
 Equality and identity tests:
@@ -305,9 +305,9 @@ It is straightforward to create and use higher order functions. Indeed functions
 ```
 
 ### Continuations
-The usual way to control the flow of execution of a computer program is via procedure calls and returns; a stack data structure is how high-level programming languages keep track of the point to which each active subroutine should return control when it finishes executing. However, to solve real-world problems, procedure call and primitive expressions are not enough. Thus most high-level programming languages also provide other control-flow primitives, like conditionals, loops, and exception handling.
+Computer programs usually control the flow of execution via procedure calls and returns; a stack of frames is how high-level programming languages keep track of the point to which each active subroutine should return control when it finishes executing. However, to solve real-world problems, procedure call and primitive expressions are not enough. Thus most high-level programming languages also provide other control-flow primitives, like conditionals, loops, and exception handling.
 
-Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation”. The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme simply provides a mechanism for obtaining this continuation as a closure. The continuation, once obtained, can be used to continue, or restart, the computation from the point it was obtained, whether or not the computation has previously completed, i.e., whether or not the continuation has been used, explicitly or implicitly. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or tasks.
+Scheme also supports first-class continuations. A continuation is a Scheme function that embodies “the rest of the computation”. The continuation of any Scheme expression (one exists for each, waiting for its value) determines what is to be done with its value. This continuation is always present, in any language implementation, since the system is able to continue from each point of the computation. Scheme provides a mechanism for capturing this continuation as a closure. The obtained continuation can be used to continue, or resume, the computation from the point it was captured, whether or not the computation has previously completed. This is useful for nonlocal exits in handling exceptions, or in the implementation of complex control structures such as coroutines or generators [@dybvig1987three].
 
 Considering a computation such as `(* (+ 2 4) (+ 1 6))`, there are several continuations involved. The continuation for `(+ 2 4)` can be expressed in this way: take this value (6), keep it aside; now add one and six, take the result and multiply it with the value we had kept aside; then finish. The continuation for `(+ 1 6)` means: take this value, multiply it with the value (6) that was previously kept aside; then finish. Notice in particular how the result of `(+ 2 4)` is part of the continuation of `(+ 1 6)`, because it has been calculated and kept aside. Continuations are not static entities that can be determined at compile time: they are dynamic objects that are created and invoked during program execution.
 
