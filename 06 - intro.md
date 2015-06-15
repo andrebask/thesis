@@ -435,8 +435,8 @@ Kawa Scheme has several extensions for dealing with java objects. It allows to c
 
 For example, the following is Kawa code for an instance of a anonymous class:
 ```
-   (object (<java.lang.Runnable>)
-     ((run) <void>
+	(object (<java.lang.Runnable>)
+      ((run) <void>
 	   (display "running!\n")))
 ```
 
