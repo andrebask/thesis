@@ -55,7 +55,7 @@ This implementation technique is substantially equivalent to the stack strategy 
 
 The process consists of six steps [@StackHack2005; @Marshall2009]:
 
-1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion introduces cells to hold the values of assigned variables. This conversion is best explained by showing it in Scheme source code:
+1. Assignment Conversion - Capturing and re-instating a continuation will cause variables to be unbound and rebound multiple times. Variable bindings that are part of a lexical closure must not be unshared when this occurs. To avoid problems with unsharing that may occur when the stack is reified, assignment conversion converts assigned variables into explicit heap-allocated boxes, thereby avoiding problems with duplication of values. This conversion is best explained by showing it in Scheme source code:
 
 ```
 	(lambda (x) ... x ... (set! x value) ...)
