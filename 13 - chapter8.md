@@ -1,5 +1,5 @@
 # Conclusions and future work
-Clojure
+Clojure, JRuby
 Actors
 Web Server
 DSU
