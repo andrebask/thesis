@@ -60,6 +60,73 @@ This chain will finish when a leaf (an atomic expression) is encountered in the 
 When the expression to normalize is a conditional, "normalizeTerm" is used on each branch expression. Instead of creating a let binding for each branch, as they cannot be evaluated before the test outcome, "normalizeTerm" calls the visit method with the identity context, restarting the normalization in each branch.
 
 ### Code fragmentation
+A visitor that fragments the code in a sequence of function calls and performs instrumentation of computation steps to capture and resume continuations.
+
+This transformation works on code previously a-normalized (see {@link gnu.expr.ANormalize}). Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewrited as a sequence of function calls, each call representing a computation step.
+
+Beside fragmentation, instrumentation is performed using exception handlers. A try-catch expression is created around each computation to capture a possible ContinuationException. The installed exception handler add a new Frame (An invokable object representing the next computation step) to the list of Frames included inside the Exception object, than rethrows the exception.
+
+This implementation is inspired to the technique described by Pettyjohn, et al. in "Continuations from Generalized Stack Inspection" and in http://www.ccs.neu.edu/racket/pubs/stackhack4.html
+
+An example of the entire transformation is showed below:
+
+1. original source
+
+```
+    (define incr #f)
+
+    (+ (call/cc
+          (lambda (k)
+              (set! incr k)
+              0))
+      1) ; => 1
+```
+
+2. after a-normalization
+
+```
+    (let ((v1 (lambda (k)
+	        (let ((v0 (set! incr k)))
+	          0))))
+     (let ((v2 (call/cc v1)))
+       (+ v2 1))))
+```
+
+3. after fragmentation
+
+```
+    ((lambda (incr_an1)
+      (let ((v1 (lambda (k)
+	           (let ((v0 (set! incr k)))
+		     0))))
+         (incr_an1 v1)))
+     (lambda (v1)
+       ((lambda (incr_an2)
+          (let ((v2 (call/cc v1)))
+	    (incr_an2 v2)))
+        (lambda (v2)
+          (+ v2 1)))))
+```
+
+4. after instrumentation
+```
+    ((lambda (incr_an1)
+      (let ((v1 (lambda (k)
+	           (let ((v0 (set! incr k)))
+		     0))))
+         (incr_an1 v1)))
+     (lambda (v1)
+       ((lambda (incr_an2)
+          (let ((v2 (try-catch (call/cc v1)
+		     (cex <ContinuationException>
+		          (let ((f (lambda (continue-value)
+					    (incr_an2 continue-value))))
+			    (cex:extend (<ContinuationFrame> f))
+			    (throw cex))))))
+	    (incr_an2 v2)))
+        (lambda (v2)
+          (+ v2 1)))))
+```
 
 ### Code Instrumentation
 
