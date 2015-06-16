@@ -461,11 +461,11 @@ Here a simple class definition:
 ```
 
 ## Thesis Contributions
-Our main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementation targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby has `callcc`, JRuby does not support it.
+My main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementation targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby has `callcc`, JRuby does not support it.
 
-We address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
+I address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
 
-We present a variant of generalised stack inspection, described by Pettyjohn et al., as an extension of the Kawa compiler. The transformation is global, thus has been developed as an optional compiler pass, to avoid adding overhead to programs that do not use continuations.
+I present a variant of generalised stack inspection, described by Pettyjohn et al., as an extension of the Kawa compiler. The transformation is global, thus has been developed as an optional compiler pass, to avoid adding overhead to programs that do not use continuations.
 
 ## Outline
 The following chapters are organized as follows. Chapter 2 provides a survey of related work. It discusses common techniques for implementing `call/cc` present in literature. Then it also compares different approaches to implement first-class continuations on the JVM.
