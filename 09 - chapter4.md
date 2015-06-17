@@ -9,11 +9,13 @@ Gene Kranz, Apollo 13
 The use of virtual machines for the implementation of programming languages has become the norm in recent compiler developments. Unlike low-level languages, such as C, that permit access to the stack through use of pointer arithmetic, higher level languages, such as Java or C# do not provide instructions for installing and saving the run-time stack. Compiling Scheme, or any other language that uses first-class continuations to the JVM thus poses a challenging problem. At at first glance, the implementors must either give up implementing continuations or manage a heap-stored stack. The first choice limits the programmers of these languages, besides automatically making the Scheme implementation non standard-compliant. The second choice precludes many of the advantages that these machines supposedly offer. Indeed, the major problem with heap allocation of call frames and environments is the overhead associated with the use of a heap. This overhead includes the direct cost of allocating objects in the heap when building the call frames and environments, and of following references instead of increasing and decreasing a stack or frame pointer when accessing pieces of the frame or environment. The overhead also includes the indirect cost of garbage collection to manage stack frames and environments and the indirect cost of using significant amounts of memory. Furthermore, the use of the heap rather than a stack prevents the exploitation of commonly available hardware or microcode-supported stack push, pop and index instructions and the use of function call and return instructions.
 
 ## Generalised stack inspection for a JVM-based Scheme
-This section shows how the generalised stack inspection technique described by Pettyjohn et al. can be adapted to be used in Kawa, and how it can be included in a Scheme compiler. We will see also how some issues leaved open by the original paper have been tackled.
+This section shows how the generalised stack inspection technique described by Pettyjohn et al. can be adapted to be used on the JVM, and how it can be included in a Scheme compiler. We will see also how some issues leaved open by the original paper have been tackled.
+
+### Assignment conversion
+In our case, this step is not necessary. Indeed, management of shared variable bindings is an orthogonal issue with respect to our global transformation, and it is shared between all the languages that provide lexical closures. Kawa already supports lexical closures, so has its way of managing variable bindings. For each closure, Kawa creates a new class to represent a function together with the environment of captured variables.
 
 ### A-Normalization
-This is an adaptation and extension of the A-normalization algoritm described in the paper "The Essence of Compiling with Continuations" by Flanagan et al. and in "A-Normalization: Why and How" by Matt Might
-(http://matt.might.net/articles/a-normalization/).
+The first step of the process is to transform the source to A-normal form. ANF was introduced by Flanagan et al. in [@Flanagan1993] as an intermediate representation for compilers. It encodes data flow explicitly by naming all sub-expressions within the program and permitting only a single definition of any particular variable. The paper by Flanagan et al. also presents a basic linear-time A-normalization algorithm for a subset of scheme. The algorithm can be easily extended to handle top-level defines and side effects [@ANFMight2015]. Being Kawa a super-set of R7RS Scheme and having also many Java related extensions, the code of the original a-normalizer must be further extended. Instead of performing the transformation directly on the Scheme source, I opted for performing it on the abstract syntax tree, as it already uses a reduced set of expression types.
 
 The algoritm performs a monadic transformation combining three steps:
 
@@ -47,6 +49,8 @@ The algoritm performs a monadic transformation combining three steps:
               b)))          -->          (let ((x b))
      c)                                    c))
 ```
+
+### Live variable analysis
 
 
 ### Code fragmentation

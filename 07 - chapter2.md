@@ -66,7 +66,7 @@ The process consists of six steps [@StackHack2005; @Marshall2009]:
 ```
 
 where `(make-cell x)` returns a new `cell` containing the value `x`, `(contents cell)` returns the value in `cell`, and `(set-contents! cell val)` updates `cell` with the new value `val`. After assignment conversion, the values of variables can no longer be altered - all side-effects are to data structures. This greatly simplifies the code transformation, because values may now be freely substituted for variables without having to first check to see whether they are assigned [@adams1986orbit].
-2. ANF Conversion - The code is converted to A-normal form (ANF).  Converting the code into A-normal form [@Flanagan1993] gives names to the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
+2. ANF Conversion - The code is converted to *administrative normal form* (A-normal form or ANF).  Converting the code into A-normal form [@Flanagan1993] gives names to the temporary values and linearizes the control flow by replacing compound expressions with an equivalent sequence of primitive expressions and variable bindings. After ANF conversion, all procedure calls will either be the right-hand side of an assignment statement or a return statement.
 For instance, the following Scheme code shows the ANF transformation of a very simple expression:
 
 ```

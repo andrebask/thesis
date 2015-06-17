@@ -185,7 +185,7 @@ The results from 10 million iterations are shown in the following table.
 | regular            | 1225      |
 | non cached         | 1240      |
 | catched            | 35482     |
-| catched, optimised |           |
+| catched, optimised | 1330      |
 
 ## Support code
 The Java port of the support code was also optimised by using arrays instead of
