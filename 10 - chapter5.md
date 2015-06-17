@@ -6,7 +6,7 @@ Yoda, Star Wars Episode V: The Empire Strikes Back
 \end{flushright}
 
 ## A demonstrative instance of the transformation in Java
-As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. I produced four versions of the transformed code:
+As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls:
 1. The first one uses nested static classes to implement the continuation frames of the function to be run,
 
 ```
@@ -111,7 +111,9 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
                                  "invoke",
                                  invokedType,
                                  methodType,
-                                 lookup.findStatic(fib_meta.class, "fib_frame0_invoke", implType),
+                                 lookup.findStatic(fib_meta.class,
+							                       "fib_frame0_invoke",
+								                   implType),
                                  methodType)
                     .dynamicInvoker();
 
@@ -126,12 +128,13 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-The lambda case is very fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field.. In all the three versions I suppressed fillInStackTrace. I executed some benchmarks to understand which technique works better. I found out that using classes is much faster than using MethodHandles, while use invokedynamic doesn't give an advantage.
+I tested each type of method call with JMH, a benchmarking framework for the JVM. Figures \ref{calls-table, calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to loose the compatibility with previous version of the JVM for such a small improvement.
 
-![Performance comparison of different types of call in Java ](figures/calls-table.pdf)
+![Performance comparison of different types of call in Java \label{calls-table} ](figures/calls-table.pdf)
 
 ![Performance comparison of different types of call in Java \label{calls} ](figures/calls.png)
 
+## Support code
 The Java port of the support code was also optimised by using arrays instead of
 
 ## A brief overview of Kawa's compilation process
