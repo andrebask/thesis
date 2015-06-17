@@ -138,10 +138,10 @@ I tested each type of method call with JMH, a benchmarking framework for the JVM
 ### Exceptions performance in Java
 The capture of a continuation, and in particular the stack coping mechanism, is driven by exception throwing and exception handling. Therefore, is crucial to understand how the installation of exception handlers and the construction of an Exception object impact the performance.
 
-In Java, when throwing an exception, the most expensive operation is the construction of the stack trace, that is useful for debugging reasons. As well as we are not using exceptions with they original purpose, we can have rid of the stack trace construction and optimise the Exception object. It is sufficient to override the fillInStackTrace method of Throwable:
+In Java, when throwing an exception, the most expensive operation is the construction of the stack trace, that is useful for debugging reasons. As well as we are not using exceptions with they original purpose, we can have rid of the stack trace construction and optimise the `Exception` object. It is sufficient to override the `fillInStackTrace` method of `Throwable`:
 
 ```
-    public static class LightException extends Exception {
+    public static class FastException extends Exception {
 
         @Override
         public Throwable fillInStackTrace() {
@@ -150,7 +150,33 @@ In Java, when throwing an exception, the most expensive operation is the constru
     }
 ```
 
-I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a
+I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a `FastException`. The results are shown in Figure \ref{exc-data}.
+
+```
+        // case 1
+		t.method1(i);
+
+        // case 2
+		try {
+			t.method2(i);
+		} catch (Exception e) {
+			// We will *never* get here
+		}
+
+        // case 3
+		try {
+			t.method3(i);
+		} catch (Exception e) {
+			// We will get here
+		}
+
+        // case 3
+		try {
+			t.method4(i);
+		} catch (LightException e) {
+			// We will get here
+		}
+```
 
 ## Support code
 The Java port of the support code was also optimised by using arrays instead of
