@@ -5,8 +5,8 @@
 Yoda, Star Wars Episode V: The Empire Strikes Back
 \end{flushright}
 
-### A demonstrative instance of the transformation in Java
-As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. I wrote five versions of the transformed code:
+## A demonstrative instance of the transformation in Java
+As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. I produced four versions of the transformed code:
 1. The first one uses nested static classes to implement the continuation frames of the function to be run,
 
 ```
@@ -73,11 +73,58 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-3. the third using dynamicInvoker of CallSite to generate an invokedynamic instruction (this is available in java 7),
+3. the third using Java 8 lambdas, specified with the new Java syntax,
 
-4. the fourth using Java-8 lambdas, specified with the new Java syntax,
+```
+    static Object fib_frame0_invoke(Object x, Object continue_value)
+            throws SaveContinuationException, Exception {
+         return fib_an0 ((int) x);
+    }
 
-5. last version that generates lambdas explicitly using LambdaMetafactory.
+    static Frame fib_frame0(int x)
+            throws Exception {
+        Frame f = (Object continue_value)
+                    -> { return fib_frame0_invoke(x, continue_value);};
+
+        return f;
+	}
+
+    public static int fib_an(int x)
+            throws SaveContinuationException, Exception {
+        try {
+            pause();
+        } catch (SaveContinuationException sce) {
+            sce.Extend(new ContinuationFrame(fib_frame0(x)));
+            throw sce;
+        }
+
+        return fib_an0(x);
+    }
+
+```
+
+4. last version that generates lambdas explicitly using LambdaMetafactory.
+
+```
+    fib_frame0_factory = LambdaMetafactory
+                    .metafactory(lookup,
+                                 "invoke",
+                                 invokedType,
+                                 methodType,
+                                 lookup.findStatic(fib_meta.class, "fib_frame0_invoke", implType),
+                                 methodType)
+                    .dynamicInvoker();
+
+    static Object fib_frame0_invoke(Object x, Object continue_value)
+            throws SaveContinuationException, Throwable {
+         return fib_an0 ((int) x);
+    }
+
+    static Frame fib_frame0(int x)
+            throws Throwable {
+        return (Frame) fib_frame0_factory.invoke(x);
+    }
+```
 
 The lambda case is very fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field.. In all the three versions I suppressed fillInStackTrace. I executed some benchmarks to understand which technique works better. I found out that using classes is much faster than using MethodHandles, while use invokedynamic doesn't give an advantage.
 
@@ -86,6 +133,8 @@ The lambda case is very fast, if compared with MethodHandles, but also the expli
 ![Performance comparison of different types of call in Java \label{calls} ](figures/calls.png)
 
 The Java port of the support code was also optimised by using arrays instead of
+
+## A brief overview of Kawa's compilation process
 
 ## A-Normalization in Kawa
 In the actual Java code "return" operation is called "identity", while the "bind" operation is called "normalizeName" as in the Flanagan et al. paper. The ExpVisitor type matching mechanism replaces the role of the "match" in the paper, while the Context class replaces the "k" parameter. Lambdas are simulated with classes for backward compatibility with Java version 7 and lower.
