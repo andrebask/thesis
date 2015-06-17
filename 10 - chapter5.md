@@ -150,7 +150,7 @@ In Java, when throwing an exception, the most expensive operation is the constru
     }
 ```
 
-I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a `FastException`. The results are shown in Figure \ref{exc-data}.
+I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a `FastException`.
 
 ```
         // case 1
@@ -170,13 +170,22 @@ I performed a straightforward benchmark, comparing the time spent by a regular m
 			// We will get here
 		}
 
-        // case 3
+        // case 4
 		try {
 			t.method4(i);
-		} catch (LightException e) {
+		} catch (FastException e) {
 			// We will get here
 		}
 ```
+
+The results from 10 million iterations are shown in the following table.
+
+|                    | time (ms) |
+|--------------------|-----------|
+| regular            | 1225      |
+| non cached         | 1240      |
+| catched            | 35482     |
+| catched, optimised |           |
 
 ## Support code
 The Java port of the support code was also optimised by using arrays instead of
