@@ -7,7 +7,8 @@ Yoda, Star Wars Episode V: The Empire Strikes Back
 
 ## A demonstrative instance of the transformation in Java
 As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls:
-1. The first one uses nested static classes to implement the continuation frames of the function to be run,
+
+1. The first one uses nested static classes to implement the continuation frames of the function to be run:
 
 ```
     class fib_frame0 extends Frame {
@@ -40,7 +41,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-2. the second using MethodHandles,
+2. the second version uses `MethodHandle`s, that were introduced in Java 7. A `MethodHandle` is a typed, directly executable reference to an underlying method, constructor or field:
 
 ```
     static Object fib_frame0_invoke(Object x, Object continue_value)
@@ -73,7 +74,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-3. the third using Java 8 lambdas, specified with the new Java syntax,
+3. the third using Java 8 lambdas, specified with the new Java syntax:
 
 ```
     static Object fib_frame0_invoke(Object x, Object continue_value)
@@ -103,7 +104,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 ```
 
-4. last version that generates lambdas explicitly using LambdaMetafactory.
+4. last version that generates lambdas explicitly using LambdaMetafactory, an API introduced in Java 8 to facilitate the creation of simple "function objects".
 
 ```
     fib_frame0_factory = LambdaMetafactory
@@ -130,9 +131,26 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 I tested each type of method call with JMH, a benchmarking framework for the JVM. Figures \ref{calls-table, calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to loose the compatibility with previous version of the JVM for such a small improvement.
 
-![Performance comparison of different types of call in Java \label{calls-table} ](figures/calls-table.pdf)
+![Performance comparison of different types of call in Java \label{calls-table}](figures/calls-table.pdf)
 
-![Performance comparison of different types of call in Java \label{calls} ](figures/calls.png)
+![Performance comparison of different types of call in Java \label{calls}](figures/calls.png)
+
+### Exceptions performance in Java
+The capture of a continuation, and in particular the stack coping mechanism, is driven by exception throwing and exception handling. Therefore, is crucial to understand how the installation of exception handlers and the construction of an Exception object impact the performance.
+
+In Java, when throwing an exception, the most expensive operation is the construction of the stack trace, that is useful for debugging reasons. As well as we are not using exceptions with they original purpose, we can have rid of the stack trace construction and optimise the Exception object. It is sufficient to override the fillInStackTrace method of Throwable:
+
+```
+    public static class LightException extends Exception {
+
+        @Override
+        public Throwable fillInStackTrace() {
+            return this;
+        }
+    }
+```
+
+I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a
 
 ## Support code
 The Java port of the support code was also optimised by using arrays instead of
