@@ -1,4 +1,4 @@
-# Implementing First-Class Continuations on the JVM
+# Implementing first-class continuations on the JVM
 
 > *"I don't care what anything was designed to do. I care about what it can do."*
 \begin{flushright}
@@ -63,7 +63,7 @@ The algoritm performs a monadic transformation combining three steps:
 ```
 
 ### Code fragmentation
-This transformation fragments the code in a sequence of function calls working on code previously a-normalized. Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewrited as a sequence of function calls, each call representing a computation step.
+This transformation fragments the code in a sequence of function calls working on code previously a-normalized. Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewritten as a sequence of function calls, each call representing a computation step.
 
 An example of the entire transformation is showed below:
 
@@ -133,4 +133,4 @@ The following code resembles the final result after instrumentation:
           (+ v2 1)))))
 ```
 
-## Open problems to solve
+## Issues
