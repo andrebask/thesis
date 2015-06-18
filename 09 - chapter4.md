@@ -104,15 +104,16 @@ An example of the entire transformation is showed below:
         (lambda (v2)
           (+ v2 1)))))
 ```
-### Live variable analysis and Closure conversion
+### Live variable analysis and closure conversion
 Kawa's support for lexical closures allows to completely avoid these steps. Each fragment, created as described in the previous section, is closed over the values of the variables that are live at that point.
 
-A continuation will be composed of a series of frames. A frame is an object with a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment, to continue the computation from the capture point. Also these frames will be closed over the live variables. also.
+A continuation will be composed of a series of frames. A *frame* is an object with a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment, to continue the computation from the capture point. Also these frames will be closed over the live variables.
 
 ### Code Instrumentation
-Beside fragmentation, instrumentation is performed installing exception handlers around each computation step to enable the capture and resume of continuations. A try-catch expression is created around each computation to capture a possible ContinuationException. The installed exception handler add a new frame (An invokable object representing the next computation step) to the list of Frames included inside the Exception object, than rethrows the exception.
+Beside fragmentation, instrumentation is performed installing exception handlers around each computation step to enable the capture and resume of continuations. A try-catch expression is created around each computation to capture a possible `ContinuationException`. The installed exception handler adds a new frame (an invokable object enclosing a call the next computation step) to the list of frames included inside the `ContinuationException` object, than rethrows the exception.
 
-4. after instrumentation
+The following code resembles the final result after instrumentation:
+
 ```
     ((lambda (incr_an1)
       (let ((v1 (lambda (k)
