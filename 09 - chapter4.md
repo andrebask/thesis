@@ -17,6 +17,17 @@ In our case, this step is not necessary. Indeed, management of shared variable b
 ### A-Normalization
 The first step of the process is to transform the source to A-normal form. ANF was introduced by Flanagan et al. in [@Flanagan1993] as an intermediate representation for compilers. It encodes data flow explicitly by naming all sub-expressions within the program and permitting only a single definition of any particular variable. The paper by Flanagan et al. also presents a basic linear-time A-normalization algorithm for a subset of scheme. The algorithm can be easily extended to handle top-level defines and side effects [@ANFMight2015]. Being Kawa a super-set of R7RS Scheme and having also many Java related extensions, the code of the original a-normalizer must be further extended. Instead of performing the transformation directly on the Scheme source, I opted for performing it on the abstract syntax tree, as it already uses a reduced set of expression types.
 
+The following code shows an instance of the transformation in three steps. The "return" operation corresponds with the identity function, while the "bind" operation is a function that constructs let bindings to make every atomic computation explicit (the bind here has the same purpose of the "normalizeName" function in the Flanagan et al. paper).
+
+The syntax tree is traversed and each non-atomic expression is passed to the bind with another parameter, called context (the very first context is the identity function that returns its argument). The context is a function that can be invoked. If the visit method is called with a non-atomic expression a new context is created, and the passed context is called only inside the new one. The new bind function has two purposes:
+
+1. to create a context, that generates a "let" expression to let-bind the expression next to come in the "visiting" process;
+2. to visit the passed expression, to continue the syntax tree traversing.
+
+This chain finish when a leaf (an atomic expression) is encountered in the tree, in this case the passed context is invoked (which in turn will invoke the previous context and so on). At this point the chain of context invocations starts to wrap each expression in a "let" binding, processing the expressions backward, and enclosing them step by step in nested "let" expressions. This backward traversing stops when the context called is the identity function. This happens in the leaves.
+
+When the expression to normalize is a conditional, the bind is used on each branch expression. Instead of creating a let binding for each branch, as they cannot be evaluated before the test outcome, bind calls the visit method with the identity context, restarting the normalization in each branch.
+
 The algoritm performs a monadic transformation combining three steps:
 
 1. Monadic conversion:
@@ -49,9 +60,6 @@ The algoritm performs a monadic transformation combining three steps:
               b)))          -->          (let ((x b))
      c)                                    c))
 ```
-
-### Live variable analysis
-
 
 ### Code fragmentation
 A visitor that fragments the code in a sequence of function calls and performs instrumentation of computation steps to capture and resume continuations.
@@ -97,6 +105,8 @@ An example of the entire transformation is showed below:
         (lambda (v2)
           (+ v2 1)))))
 ```
+### Live variable analysis and Closure conversion
+Kawa's support for lexical closures allows to avoid these steps. ...
 
 ### Code Instrumentation
 Beside fragmentation, instrumentation is performed using exception handlers. A try-catch expression is created around each computation to capture a possible ContinuationException. The installed exception handler add a new Frame (An invokable object representing the next computation step) to the list of Frames included inside the Exception object, than rethrows the exception.
