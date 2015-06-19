@@ -11,6 +11,17 @@ The use of virtual machines for the implementation of programming languages has 
 ## Generalised stack inspection for a JVM-based Scheme
 This section shows how the generalised stack inspection technique described by Pettyjohn et al. can be adapted to be used on the JVM, and how it can be included in a Scheme compiler. We will see also how some issues leaved open by the original paper have been tackled.
 
+### The technique explained
+When an exception is thrown, the current execution of the routine stops and the program searches routines in the stack for an exception handler. If no handler is found, the exception goes past the try block to try blocks in an outer scope. Searching in outer scopes for exception handlers is called a “stack walk”. While the stack unwinds, Java pops all functions off of the stack
+
+![stack \label{stack} ](figures/stack.pdf)
+
+![stack mod \label{stack-mod} ](figures/stack_mod.pdf)
+
+![frames \label{frames} ](figures/frames.png)
+
+![frames-call \label{frames-call} ](figures/frames-call.png)
+
 ### Assignment conversion
 In our case, this step is not necessary. Indeed, management of shared variable bindings is an orthogonal issue with respect to our global transformation, and it is shared between all the languages that provide lexical closures. Kawa already supports lexical closures, so has its way of managing variable bindings. For each closure, Kawa creates a new class to represent a function together with the environment of captured variables.
 
