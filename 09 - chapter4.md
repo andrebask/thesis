@@ -8,19 +8,25 @@ Gene Kranz, Apollo 13
 ## The stack manipulation dilemma
 The use of virtual machines for the implementation of programming languages has become the norm in recent compiler developments. Unlike low-level languages, such as C, that permit access to the stack through use of pointer arithmetic, higher level languages, such as Java or C# do not provide instructions for installing and saving the run-time stack. Compiling Scheme, or any other language that uses first-class continuations to the JVM thus poses a challenging problem. At at first glance, the implementors must either give up implementing continuations or manage a heap-stored stack. The first choice limits the programmers of these languages, besides automatically making the Scheme implementation non standard-compliant. The second choice precludes many of the advantages that these machines supposedly offer. Indeed, the major problem with heap allocation of call frames and environments is the overhead associated with the use of a heap. This overhead includes the direct cost of allocating objects in the heap when building the call frames and environments, and of following references instead of increasing and decreasing a stack or frame pointer when accessing pieces of the frame or environment. The overhead also includes the indirect cost of garbage collection to manage stack frames and environments and the indirect cost of using significant amounts of memory. Furthermore, the use of the heap rather than a stack prevents the exploitation of commonly available hardware or microcode-supported stack push, pop and index instructions and the use of function call and return instructions.
 
+## A solution: generalises stack inspection
+The idea is to throw an exception to unwind the stack, and use the same exception to store the list of frames that constitute the stack portion to be captured. This list of frames can be later used to restate the entire continuation. As an example, consider stack of nested function calls in Figure \ref{stack}. At top level we call `topLevel`, that in turn calls `f`, which calls `g`, which call `call/cc` with `h` as argument. Each call is enclosed in an exception handler
+
+![\label{stack}](figures/stack.pdf)
+
+the call/cc throws...
+
+![\label{stack-mod}](figures/stack_mod.pdf)
+
+Figure \ref{frames} shows ...
+
+![frames \label{frames}](figures/frames.png)
+
+When a continuation is invoked...
+
+![frames-call \label{frames-call}](figures/frames-call.png)
+
 ## Generalised stack inspection for a JVM-based Scheme
 This section shows how the generalised stack inspection technique described by Pettyjohn et al. can be adapted to be used on the JVM, and how it can be included in a Scheme compiler. We will see also how some issues leaved open by the original paper have been tackled.
-
-### The technique explained
-When an exception is thrown, the current execution of the routine stops and the program searches routines in the stack for an exception handler. If no handler is found, the exception goes past the try block to try blocks in an outer scope. Searching in outer scopes for exception handlers is called a “stack walk”. While the stack unwinds, Java pops all functions off of the stack
-
-![stack \label{stack} ](figures/stack.pdf)
-
-![stack mod \label{stack-mod} ](figures/stack_mod.pdf)
-
-![frames \label{frames} ](figures/frames.png)
-
-![frames-call \label{frames-call} ](figures/frames-call.png)
 
 ### Assignment conversion
 In our case, this step is not necessary. Indeed, management of shared variable bindings is an orthogonal issue with respect to our global transformation, and it is shared between all the languages that provide lexical closures. Kawa already supports lexical closures, so has its way of managing variable bindings. For each closure, Kawa creates a new class to represent a function together with the environment of captured variables.
