@@ -468,14 +468,12 @@ I present a variant of generalised stack inspection, described by Pettyjohn et a
 ## Outline
 The following chapters are organized as follows. Chapter 2 provides a survey of related work. It discusses common techniques for implementing `call/cc` present in literature. Then it also compares different approaches to implement first-class continuations on the JVM.
 
-Chapter 3 presents the issues in delivering first-class continuations on the JVM, as well as the limitations of the existing implementations.
+Chapter 3 presents the issues in delivering first-class continuations on the JVM. It describes the details of the code transformation technique employed to enable the capture and resume of first-class continuations.
 
-Chapter 4 describes the details of the code transformation technique employed to enable the capture and resume of first-class continuations.
+Chapter 4 demonstrates the viability of the design by providing an implementation of the entire transformation.
 
-Chapter 5 demonstrates the viability of the design by providing an implementation of the entire transformation.
+Chapter 5 shows how the proposed implementation can be used to add debugging facilities to Kawa, and to implement new control flow constructs.
 
-Chapter 6 shows how the proposed implementation can be used to add debugging facilities to Kawa, and to implement new control flow constructs.
+Chapter 6 provides a performance evaluation and discusses some issues related this approach. The advantages and limitations of this approach are also discussed in detail.
 
-Chapter 7 provides a performance evaluation and discusses some issues related this approach. The advantages and limitations of this approach are also discussed in detail.
-
-Finally, Chapter 6 summarizes the contributions of this thesis and discusses possible future work.
+Finally, Chapter 7 summarizes the contributions of this thesis and discusses possible future work.
