@@ -15,19 +15,19 @@ The idea is to fragment the original program in a sequence of atomic computation
 
 When the `call/cc` is called, it creates a new `ContinuationException` object, adds the computation associated to `h` to the list, and throws the exception. Just after the `throw`, the execution stops and the JVM searches routines in the stack for an exception handler. The first `try`/`catch` expression found, that is in `g`, extends the list with an other computation and re-throws the exception.
 
+![\label{stack-mod}](figures/stack_mod.pdf)
+
 The exception goes past the try block to try blocks in an outer scope. At each step a new computation is added to the `ContinuationException`, until the control goes to  the top level exception handler, which assembles the actual exception object. Searching in outer scopes for exception handlers is called a *stack walk*. While the stack unwinds, the JVM pops the stack frames off of the stack, destroying all the stack allocated variables. However, as all the computation steps are saved in the `ContinuationException`, a copy of the stack is progressively created on the heap. The exception always maintains a reference to the list of computations during the stack walk, so that the continuation is not garbage-collected.
 
 The top level handler, besides assembling the continuation object, resumes the execution of `h`, the function passed to the `call/cc`, passing to it the continuation as argument. If `h` does not invoke the continuation, the top level handler resumes the continuation after `h` returns. Figure \ref{stack-mod} illustrates the process.
-
-![\label{stack-mod}](figures/stack_mod.pdf)
 
 ![Stack and heap during a continuation capture \label{frames}](figures/frames.png)
 
 Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`. When `call/cc` is called the stack frames belonging to the continuation are under the `call/cc`'s one (assuming the stack growing bottom-up). Throwing the ContinuationException `call/cc` starts to unwind the stack, and consequently the heap starts to be populated by the continuation frames. When top level is reached, the handler creates the continuation object. At the end of the process, the `h` function is resumed with the continuation object bound to its single argument.
 
-An interesting property of first-class continuations is that they can be invoked at any time, provided that they are saved in an accessible variable. When a continuation is invoked, it throws an `ExitException`. This causes the stack to be unwind, as in the capture case. The top level handler in this case resumes the continuation frames stored in the continuation object. The final result is that the execution restart where it was suspended by the call/cc, while the heap continues to store the continuation object. This can be accessed other times, or can be garbage-collected if it is no more used.
-
 ![Stack and heap when reinstating a continuation \label{frames-call}](figures/frames-call.png)
+
+An interesting property of first-class continuations is that they can be invoked at any time, provided that they are saved in an accessible variable. When a continuation is invoked, it throws an `ExitException`. This causes the stack to be unwind, as in the capture case. The top level handler in this case resumes the continuation frames stored in the continuation object. The final result is that the execution restart where it was suspended by the call/cc, while the heap continues to store the continuation object. This can be accessed other times, or can be garbage-collected if it is no more used.
 
 ## Generalised stack inspection for a JVM-based Scheme
 This section shows how the generalised stack inspection technique described by Pettyjohn et al. can be adapted to be used on the JVM, and how it can be included in a Scheme compiler. We will see also how some issues leaved open by the original paper have been tackled.
