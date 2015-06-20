@@ -10,11 +10,11 @@ Paul Graham, Beating the Averages
 ## Context
 
 ### Functional programming
-It is well known that the modern computers are not improving their performance like in the past decades, because frequency scaling, for silicon, has reached a limit. They increase their potential productivity by adding cores [@TurnConcurrency2015].
+It is well known that the modern computers are not improving their performance like in the past decades, because frequency scaling, for silicon, has reached a limit. For this reason, processors manufacturers increase the potential productivity of their products by adding cores [@TurnConcurrency2015].
 
 ![Intel CPU Trends [@TurnConcurrency2015] \label{cpu-freq} ](figures/cpu.png)
 
-This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is quite harder than sequential programming, due to several new challenges it brings. *Functional programming* (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and methods without side effects. The learning curve for functional programming is often steep, but parallel programming is not intuitive ans its learning curve might be even steeper.
+This implies that to benefit most from this architecture, the programs have to be parallellized. But parallel programming is quite harder than sequential programming, due to several new challenges it brings. *Functional programming* (FP) helps to get rid of some of these challenges, and it has recently risen in importance because it is well suited for concurrent and event-driven (or "reactive") programming, thanks to the use of immutable variables and functions without side effects. The learning curve for functional programming is often steep, but concurrent programming with imperative languages is not intuitive and its learning curve might be even steeper.
 
 Functional programming is often used in synergy with other programming paradigms, since the world is made of stateful objects, while FP uses a mainly stateless computation model. FP has ways to model state, but there is an essential mismatch in a stateless model trying to represent a stateful world.
 
@@ -30,7 +30,7 @@ The reference implementation Java compilers, virtual machines, and class librari
 ![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.pdf)
 
 #### Java 8
-Starting from Java 8, java supports aspects of functional programming. Two core concepts introduced in Java 8 are *lambda expressions* and *functional interfaces* [@OracleLambda2015].
+Starting from release 8, Java supports aspects of functional programming. Two core concepts introduced in Java 8 are *lambda expressions* and *functional interfaces* [@OracleLambda2015].
 
 A lambda expression is an anonymous function that can be declared with a comma separated list of the formal parameters enclosed in parentheses, an arrow token (->), and a body. Data types of the parameters can always be omitted, as can the parentheses if there is only one parameter. The body can consist of a single statement or a statement block.
 
@@ -85,7 +85,7 @@ Few examples of lambda expressions and their functional interface:
 	Predicate<String> p = (String s) -> { s == null };
 ```
 
-With the addition of Lambda expressions to arrays operations, Java introduced a key concept into the language of internal iteration. Using that paradigm, the actual iteration over a collection on which a Lambda function is applied is now carried out by the core library itself [@WhyLambda2013]. An relevant possibility opened by this design pattern is to enable operations carried out on long arrays (such as sorting, filtering and mapping) to be carried out in parallel by the framework. For example:
+With the addition of Lambda expressions to arrays operations, Java introduced a key concept into the language of *internal iteration*. Using that paradigm, the actual iteration over a collection on which a Lambda function is applied is now carried out by the core library itself [@WhyLambda2013]. An relevant possibility opened by this design pattern is to enable operations carried out on long arrays (such as sorting, filtering and mapping) to be carried out in parallel by the framework. For example:
 
 ```java
 	List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -99,7 +99,7 @@ With the addition of Lambda expressions to arrays operations, Java introduced a 
 	numbers.forEach(value -> System.out.println(value));
 ```
 
-In Java 8 it is also possible to reference both a static and an instance a method using the new `::` operator:
+In Java 8 it is also possible to reference both a static and an instance method using the new `::` operator:
 
 ```java
 	numbers.forEach(System.out::println);
@@ -132,7 +132,7 @@ we can use the `Predicate` functional interface to create a test and print the e
 
 ```
 
-Java 8 brings to developers another interesting feature from functional programming: Streams, that is, lazy evaluation. Streams are a new abstraction that allows to process data in a declarative way:
+Java 8 brings to developers another interesting feature from functional programming: *Streams*, that is, lazy *evaluation*. Streams are a new abstraction that allows to process data in a declarative way:
 
 ```java
 	System.out.println(
@@ -147,7 +147,7 @@ Java 8 brings to developers another interesting feature from functional programm
 You can create a Stream from any Collection by invoking the `stream()` method on it. A Stream provides an interface to a sequenced set of values of a specific element type. However, streams don’t actually store elements; they are computed on demand. They consume from a data-providing source such as collections, arrays, or I/O resources and support common operations, such as filter, map, reduce, find, match, sorted. Furthermore, many stream operations return a stream themselves. This allows operations to be chained to form a larger pipeline, enabling also certain optimisations.
 
 #### The Java Virtual Machine
-A Java virtual machine (JVM) is an abstract computing machine defined by a specification. The specification formally describes what is required of a JVM implementation. Having a single specification ensures all implementations are interoperable. A JVM implementation is a software platform that meets the requirements of the JVM specification in a compliant and preferably performant manner [@JVMWiki2015].
+A Java Virtual Machine (JVM) is an abstract computing machine defined by a specification. The specification formally describes what is required of a JVM implementation. Having a single specification ensures all implementations are interoperable. A JVM implementation is a software platform that meets the requirements of the JVM specification in a compliant and preferably performant manner [@JVMWiki2015].
 
 One of the main goals of Java design is portability, and Java is indeed platform independent. That is achieved by compiling the Java language code to an intermediate representation called Java bytecode, instead of directly to architecture-specific machine code. Java bytecode instructions are analogous to machine code, but they are intended to be executed by a virtual machine written specifically for the host hardware. Moreover, Just-in-Time (JIT) compilers were introduced from an early stage that compile bytecodes to machine code during runtime. Thus a JVM is platform dependent, because it must convert Java bytecode into machine language which depends on the architecture and operating system being used. End users commonly use a Java Runtime Environment (JRE) installed on their own machine for standalone Java applications, or in a web browser for Java applets [@JavaWiki2015].
 
@@ -156,9 +156,9 @@ The Oracle Corporation, which owns the Java trademark, distributes the Java Virt
 #### JVM based Languages
 The JVM is not only for Java. Several hundred JVM programming languages are available to be run on it. These languages ultimately compile to bytecode in class files, which the JVM can then execute.
 
-Some JVM languages include more features than Java and aim to let developers write code in a more concise way. features like collection literals, pattern matching, and a more sophisticated type inference were the motivation for languages such as Scala, Groovy, Xtend, Ceylon, Kotlin, and Fantom [@JVMLang2015].
+Some JVM languages include more features than Java and aim to let developers write code in a more concise way. Features like collection literals, pattern matching, and a more sophisticated type inference were the motivation for languages such as Scala, Groovy, Xtend, Ceylon, Kotlin, and Fantom [@JVMLang2015].
 
-Then there are existing languages that were ported to the JVM. Python, Erlang, Ruby, Scheme and Javscript, for instance, all have an implementation targeting the JVM (respectively Jython, Erjang, JRuby, Kawa and Rhino). Another popular language ported to the JVM is Clojure, a dialect of Lisp  with an emphasis on functional and concurrent programming [@JVMWiki2015].
+Then there are existing languages that were ported to the JVM. Python, Erlang, Ruby, Scheme and Javascript, for instance, all have an implementation targeting the JVM (respectively Jython, Erjang, JRuby, Kawa and Rhino). Another popular language ported to the JVM is Clojure, a dialect of Lisp  with an emphasis on functional and concurrent programming [@JVMWiki2015].
 
 Many less-known JVM languages implement new research ideas, are suited only for a specific domain, or are just experimental.
 
@@ -178,7 +178,7 @@ In Scheme, a procedure definition may appear within another block or procedure, 
 Furthermore
 orover, Scheme provides anonymous procedures. Indeed procedures are first-class data objects like strings or numbers, and variables are bound to procedures in the same way they are bound to other objects.
 
-The Scheme language is standardized in the Revised\textsuperscript{n} Report on the Algorithmic Language Scheme (RnRS).
+The Scheme language is standardized in the Revised\textsuperscript{n} Report on the Algorithmic Language Scheme (RnRS), where the \textsuperscript{n} indicates the revision number. The last report is R7RS, released in 2013.
 
 #### Scheme basics
 
@@ -242,7 +242,7 @@ Equality and identity tests:
 	(eq? 'hello 'hello)        => #t
 	(eq? '(1 2) '(1 2))        => #f
 	(define foo '(1 2))
-	(define foo bar)
+	(define bar foo)
 	(eq? foo bar)              => #t
 	(equal? foo bar)           => #t   ; equality: they look the same
 	(equal? foo '(1 2))        => #t
@@ -268,16 +268,14 @@ Iteration via recursion:
 
 ```scheme
 	;; Exponentiation function x^n
-	(define expt
-	  (lambda (x n)
-        (if (= n 0)
+	(define (expt x n
+      (if (= n 0)
 		  1
 	      (* x (expt x (- n 1))))))
 
 	;; List length
-	(define length
-	  (lambda (lst)
-        (if (null? lst)
+	(define (length lst
+	  (if (null? lst)
           0
 	      (+ 1 (length (cdr lst))))))
 ```
@@ -344,7 +342,7 @@ Now consider
 	    (+ (k 42) 100)))
 ```
 
-In this case, the function throws the value 42 to the continuation, but there is another computation afterwards. that computation has no effect, because when a continuation is invoked with a value, the program reinstates the invoked continuation, and the continuation which was going to take a value `x` and perform `(+ x 100)` has been aborted. The result is still 42.
+In this case, the function throws the value 42 to the continuation, but there is another computation afterwards. That computation has no effect, because when a continuation is invoked with a value, the program reinstates the invoked continuation, and the continuation which was going to take a value `x` and perform `(+ x 100)` has been aborted. The result is still 42.
 
 On the other hand, consider
 
@@ -393,7 +391,7 @@ Continuations captured by `call/cc` is the whole continuation that includes all 
 
 A continuation is delimited when it produces an intermediate answer rather than the final outcome of the entire computation. In other words, a delimited continuation is a representation of the "rest of the computation" from the current computation up to a designated boundary. Unlike regular continuations, delimited continuations return a value, and thus may be reused and composed [@kiselyov2007delimited].
 
-Various operators for delimited continuations have been proposed in the research literature, such as `prompt` and `control`, `shift` and `reset`, `cupto`, `fcontrol`, and others [@RacketContinuations2015]. In this introduction we will consider only the `shift` and `reset` operator.
+Various operators for delimited continuations have been proposed in the research literature, such as `prompt` and `control`, `shift` and `reset`, `cupto`, `fcontrol`, and others [@RacketContinuations2015]. In this introduction we will consider only the `shift` and `reset` operators.
 
 The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The `shift` operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that `shift` produces is provided to the innermost `reset`, discarding the continuation in between the `reset` and `shift`. The continuation, if invoked, effectively reinstates the entire computation up to the `reset`. When the computation is completed, the result is returned by the delimited continuation [@DelimitedWiki2015]. For example, consider the following snippet in Scheme:
 
@@ -416,9 +414,9 @@ Once the execution of the `shift`'s body is completed, the continuation is disca
 invokes `(k 4)` first, which produces 8 as result, and then `(k 8)`, which returns 16. At this point, the `shift` expression has terminated, and the rest of the `reset` expression is discarded. Therefore, the final result is 16.
 
 ### Kawa
-*Kawa* is a language framework written in Java that implements an extended version of the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the Java Virtual Machine [@Kawa2015]. The author and project leader of Kawa is Per Bothner, who started its development in 1996.
+*Kawa* is a language framework written in Java that implements an extended version of the programming language Scheme. It provides a set of Java classes useful for implementing dynamic languages, such as those in the Lisp family. Kawa is also an implementation of almost all of R7RS Scheme (First-class continuations being the major missing feature), and which compiles Scheme to the bytecode instructions of the JVM [@Kawa2015]. The author and project leader of Kawa is Per Bothner, who started its development in 1996.
 
-Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation,and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
+Kawa gives run-time performance a high priority. The language facilitates compiler analysis and optimisation, and most of the time the compiler knows which function is being called, so it can generate code to directly invoke a method. Kawa also tries to catch errors at compile time.
 
 To aid with type inference and type checking, Kawa supports optional type specifiers, which are specified using two colons. For example:
 
@@ -429,9 +427,9 @@ To aid with type inference and type checking, Kawa supports optional type specif
 
 This defines a procedure add-int with two parameters: x and y are of type Java `int`; the return type is a `java.lang.String`.
 
-The Kawa runtime start-up is quite fast for a language based on the Java virtual machine (JVM). This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which may be compiled to native code by the just-in-time (JIT) compiler.
+The Kawa runtime start-up is quite fast for a language based on the JVM. This allows Kawa to avoid using an interpreter. Each expression typed into the REPL is compiled on-the-fly to JVM bytecodes, which may be compiled to native code by the just-in-time (JIT) compiler.
 
-Kawa Scheme has several extensions for dealing with java objects. It allows to call methods of java objects/classes, create objects and implement classes and interfaces.
+Kawa Scheme has several extensions for dealing with Java objects. It allows to call methods of Java objects/classes, create objects and implement classes and interfaces.
 
 For example, the following is Kawa code for an instance of a anonymous class:
 ```scheme
@@ -461,7 +459,7 @@ Here a simple class definition:
 ```
 
 ## Thesis Contributions
-My main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementation targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby has `callcc`, JRuby does not support it.
+My main contribution is an implementation of `call/cc` in a Scheme compiler targeting the JVM. The only other Scheme implementations targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, `shift` and `reset`. Although Ruby has `callcc`, JRuby does not support it.
 
 I address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
 
