@@ -103,27 +103,27 @@ An example of the entire transformation is showed below:
 2. after a-normalization
 
 ```
-    (let ((v1 (lambda (k)
+    (let ((v1 (lambda (k)              ; computation #1
 	        (let ((v0 (set! incr k)))
 	          0))))
-     (let ((v2 (call/cc v1)))
-       (+ v2 1))))
+     (let ((v2 (call/cc v1)))          ; computation #2
+       (+ v2 1))))                     ; computation #3
 ```
 
 3. after fragmentation
 
 ```
-    ((lambda (incr_an1)
+    ((lambda (incr_an1)                ; fragment #1
       (let ((v1 (lambda (k)
-	           (let ((v0 (set! incr k)))
-		     0))))
+	              (let ((v0 (set! incr k)))
+		            0))))
          (incr_an1 v1)))
      (lambda (v1)
-       ((lambda (incr_an2)
+       ((lambda (incr_an2)             ; fragment #2
           (let ((v2 (call/cc v1)))
-	    (incr_an2 v2)))
+	        (incr_an2 v2)))
         (lambda (v2)
-          (+ v2 1)))))
+          (+ v2 1)))))                 ; fragment #3
 ```
 ### Live variable analysis and closure conversion
 Kawa's support for lexical closures allows to completely avoid these steps. Each fragment, created as described in the previous section, is closed over the values of the variables that are live at that point.
@@ -143,12 +143,12 @@ The following code resembles the final result after instrumentation:
          (incr_an1 v1)))
      (lambda (v1)
        ((lambda (incr_an2)
-          (let ((v2 (*try-catch* (call/cc v1)
-		              (cex <ContinuationException>
+          (let ((v2 (try-catch (call/cc v1)             ; try/catch
+		              (cex <ContinuationException>      ; exception handler
 		                 (let ((f (lambda (continue-value)
 					         (incr_an2 continue-value))))
 			             (cex:extend (<ContinuationFrame> f))
-			             (throw cex))))))
+			             (throw cex))))))               ; re-throw
 	        (incr_an2 v2)))
         (lambda (v2)
           (+ v2 1)))))
