@@ -2,7 +2,7 @@
 
 > *"I don't care what anything was designed to do. I care about what it can do."*
 \begin{flushright}
-Gene Kranz, Apollo 13
+Gene Kranz, Apollo 13 (film, 1995)
 \end{flushright}
 
 ## The stack manipulation dilemma
@@ -17,11 +17,11 @@ When the `call/cc` is called, it creates a new `ContinuationException` object, a
 
 The exception goes past the try block to try blocks in an outer scope. At each step a new computation is added to the `ContinuationException`, until the control goes to  the top level exception handler, which assembles the actual exception object. Searching in outer scopes for exception handlers is called a *stack walk*. While the stack unwinds, the JVM pops the stack frames off of the stack, destroying all the stack allocated variables. However, as all the computation steps are saved in the `ContinuationException`, a copy of the stack is progressively created on the heap. The exception always maintains a reference to the list of computations during the stack walk, so that the continuation is not garbage-collected.
 
-The top level handler, besides assembling the continuation object, resumes the execution of `h`, the function passed to the `call/cc`, passing the continuation to it as argument. If `h` does not invoke the continuation, the top level handler resumes the continuation after `h` returns. Figure \ref{stack-mod} illustrates the process.
+The top level handler, besides assembling the continuation object, resumes the execution of `h`, the function passed to the `call/cc`, passing to it the continuation as argument. If `h` does not invoke the continuation, the top level handler resumes the continuation after `h` returns. Figure \ref{stack-mod} illustrates the process.
 
 ![\label{stack-mod}](figures/stack_mod.pdf)
 
-Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`.
+Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`. When `call/cc` is called the stack frames belonging to the continuation are under the `call/cc`'s one (assuming the stack growing bottom-up). Throwing the ContinuationException `call/cc` starts to unwind the stack, and consequently the heap starts to be populated by the continuation frames. When top level is reached, the handler creates the continuation object. At the end of the process, the `h` function is resumed with the continuation object bound to its single argument.
 
 ![frames \label{frames}](figures/frames.png)
 
