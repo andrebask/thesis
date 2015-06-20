@@ -317,7 +317,7 @@ Using the syntactic form `call-with-current-continuation` (usually abbreviated `
 
 The standard idiom for `call/cc` has an explicit lambda term as its argument:
 
-```
+```scheme
 	(call/cc (lambda (current-continuation)
 	  body))
 ```
@@ -328,7 +328,7 @@ When applied to a function `f`, `call/cc` captures and aborts the entire continu
 
 Consider a first example:
 
-```
+```scheme
 	(call/cc
 	  (lambda (k)
 		(k 42)))
@@ -338,7 +338,7 @@ This applies `call/cc` to the function `(lambda (k) (k 42))`, which is called wi
 
 Now consider
 
-```
+```scheme
 	(call/cc
 	  (lambda (k)
 	    (+ (k 42) 100)))
@@ -348,7 +348,7 @@ In this case, the function throws the value 42 to the continuation, but there is
 
 On the other hand, consider
 
-```
+```scheme
 	(call/cc
 	  (lambda (k) 42))
 ```
@@ -359,7 +359,7 @@ Actually, although a continuation can be called as a procedure, it is not a real
 
 As an other example, consider the following code:
 
-```
+```scheme
 	(display
 		(call/cc (lambda (k)
               (display "This is executed.\n")
@@ -378,7 +378,7 @@ An interesting feature of first-class continuations is that the continuation may
 
 For example, the following causes an infinite loop that prints `goto start` forever:
 
-```
+```scheme
 	(let ((start #f))
       (if (not start)
         (call/cc (lambda (cc)
@@ -397,19 +397,19 @@ Various operators for delimited continuations have been proposed in the research
 
 The `reset` operator sets the limit for the continuation while the `shift` operator captures or reifies the current continuation up to the innermost enclosing `reset`. The `shift` operator passes the captured continuation to its body, which can invoke, return or ignore it. Whatever result that `shift` produces is provided to the innermost `reset`, discarding the continuation in between the `reset` and `shift`. The continuation, if invoked, effectively reinstates the entire computation up to the `reset`. When the computation is completed, the result is returned by the delimited continuation [@DelimitedWiki2015]. For example, consider the following snippet in Scheme:
 
-```
+```scheme
 	(* 2 (reset (+ 1 (shift k (k 5)))))
 ```
 
 The `reset` delimits the continuation that `shift` captures. When this code is executed, the use of `shift` will bind `k` to the continuation `(+ 1 [])` where `[]` represents the part of the computation that is to be filled with a value. This is exactly the code that surrounds the `shift` up to the `reset`. Since the body of `shift` immediately invokes the continuation, the previous expression is equivalent to the following:
 
-```
+```scheme
 	(* 2 (+ 1 5))
 ```
 
 Once the execution of the `shift`'s body is completed, the continuation is discarded, and execution restarts outside `reset`. For instance:
 
-```
+```scheme
 	(reset (* 2 (shift k (k (k 4)))))
 ```
 
@@ -422,7 +422,7 @@ Kawa gives run-time performance a high priority. The language facilitates compil
 
 To aid with type inference and type checking, Kawa supports optional type specifiers, which are specified using two colons. For example:
 
-```
+```scheme
 	(define (add-int x::int y::int) :: String
 		(String (+ x y)))
 ```
@@ -434,7 +434,7 @@ The Kawa runtime start-up is quite fast for a language based on the Java virtual
 Kawa Scheme has several extensions for dealing with java objects. It allows to call methods of java objects/classes, create objects and implement classes and interfaces.
 
 For example, the following is Kawa code for an instance of a anonymous class:
-```
+```scheme
 	(object (<java.lang.Runnable>)
       ((run) <void>
 	   (display "running!\n")))
@@ -442,7 +442,7 @@ For example, the following is Kawa code for an instance of a anonymous class:
 
 Here a simple class definition:
 
-```
+```scheme
 	(define-simple-class Person ()
 	  (last ::String)
 	  (first ::String)
