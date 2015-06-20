@@ -21,14 +21,14 @@ The top level handler, besides assembling the continuation object, resumes the e
 
 ![\label{stack-mod}](figures/stack_mod.pdf)
 
+![Stack and heap during a continuation capture \label{frames}](figures/frames.png)
+
 Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`. When `call/cc` is called the stack frames belonging to the continuation are under the `call/cc`'s one (assuming the stack growing bottom-up). Throwing the ContinuationException `call/cc` starts to unwind the stack, and consequently the heap starts to be populated by the continuation frames. When top level is reached, the handler creates the continuation object. At the end of the process, the `h` function is resumed with the continuation object bound to its single argument.
 
-![frames \label{frames}](figures/frames.png)
-
-An interesting property of first-class continuations is that they can be invoked at any time, provided that they are saved in accessible variable.
+An interesting property of first-class continuations is that they can be invoked at any time, provided that they are saved in an accessible variable.
 When a continuation is invoked...
 
-![frames-call \label{frames-call}](figures/frames-call.png)
+![Stack and heap when reinstating a continuation \label{frames-call}](figures/frames-call.png)
 
 ## Generalised stack inspection for a JVM-based Scheme
 This section shows how the generalised stack inspection technique described by Pettyjohn et al. can be adapted to be used on the JVM, and how it can be included in a Scheme compiler. We will see also how some issues leaved open by the original paper have been tackled.
