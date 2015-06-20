@@ -36,7 +36,7 @@ A lambda expression is an anonymous function that can be declared with a comma s
 
 Syntax:
 
-```
+```java
 	(arg1, arg2...) -> { body }
 
 	(type1 arg1, type2 arg2...) -> { body }
@@ -44,7 +44,7 @@ Syntax:
 
 Examples:
 
-```
+```java
 	(int x, int y) -> x + y
 
 	() -> 42
@@ -60,13 +60,13 @@ An example of a functional interface is `java.lang.Runnable`. It has only one me
 
 Each lambda expression can be implicitly assigned to one functional interface. For example we can create `Runnable` interface’s reference from lambda expression like below:
 
-```
+```java
 	Runnable r = () -> System.out.println("running");
 ```
 
 This type of conversion is automatically handled by the compiler when we dont specify the functional interface. For example:
 
-```
+```java
 	new Thread(
 		() -> System.out.println("running")
 	).start();
@@ -76,7 +76,7 @@ In above code, compiler automatically deduced that lambda expression can be cast
 
 Few examples of lambda expressions and their functional interface:
 
-```
+```java
 	Consumer<Integer>  c = (int x) -> { System.out.println(x) };
 
 	BiConsumer<Integer, String> b = (Integer x, String y)
@@ -87,7 +87,7 @@ Few examples of lambda expressions and their functional interface:
 
 With the addition of Lambda expressions to arrays operations, Java introduced a key concept into the language of internal iteration. Using that paradigm, the actual iteration over a collection on which a Lambda function is applied is now carried out by the core library itself [@WhyLambda2013]. An relevant possibility opened by this design pattern is to enable operations carried out on long arrays (such as sorting, filtering and mapping) to be carried out in parallel by the framework. For example:
 
-```
+```java
 	List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
 
 	// old way
@@ -101,13 +101,13 @@ With the addition of Lambda expressions to arrays operations, Java introduced a 
 
 In Java 8 it is also possible to reference both a static and an instance a method using the new `::` operator:
 
-```
+```java
 	numbers.forEach(System.out::println);
 ```
 
 Passing a lambda expression to another function allows to pass not only values but also behaviours and this enables to project more generic, flexible and reusable API. For instance declaring the following method:
 
-```
+```java
 	public void evaluate(List<integer> list,
 		                 Predicate<integer> predicate) {
         for(Integer n: list)  {
@@ -120,7 +120,7 @@ Passing a lambda expression to another function allows to pass not only values b
 
 we can use the `Predicate` functional interface to create a test and print the elements that pass the test:
 
-```
+```java
 	System.out.println("Print all numbers:");
 	evaluate(numbers, (n)->true);
 
@@ -134,7 +134,7 @@ we can use the `Predicate` functional interface to create a test and print the e
 
 Java 8 brings to developers another interesting feature from functional programming: Streams, that is, lazy evaluation. Streams are a new abstraction that allows to process data in a declarative way:
 
-```
+```java
 	System.out.println(
 	    numbers.stream()
 		    .filter(Lazy::isEven)
@@ -186,14 +186,14 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 
 `define` is used to define new names.
 
-```
+```scheme
 	(define x 10)
 	(define square (lambda (x) (* x x)))
 ```
 
 `quote` prevents the argument to be evaluated as an expression, returning it as literal data (symbols or lists).
 
-```
+```scheme
 	(quote hi!)           => hi!
 	(quote (1 2 3))         => (1 2 3)
 
@@ -203,14 +203,14 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 
 `lambda` is used to create anonymous functions.
 
-```
+```scheme
 	(lambda (x) (* x 10)                    ; anonymous function
 	(define times10 (lambda (x) (* x 10)))   ; named the function now
 ```
 
 `cond` is a general conditional.
 
-```
+```scheme
 	(cond
 	  ((eq? 'foo 'bar) 'hello)
 	  ((= 10 20) 'goodbye)
@@ -219,7 +219,7 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 
 `let` is used to declare/use temporary variables.
 
-```
+```scheme
 	(let ((x 10)
 		  (y 20))
 	  (+ x y))
@@ -228,7 +228,7 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 Built-in types are integers, rationals, floats, characters, strings, booleans, symbols, lists, and vectors.
 A set of built-in functions we can use on these types:
 
-```
+```scheme
 	;; arithmetic:  +, -, *, /
 	;; relational: <, <=, >, >=, =
 	(+ 1 2)                    => 3
@@ -237,7 +237,7 @@ A set of built-in functions we can use on these types:
 
 Equality and identity tests:
 
-```
+```scheme
 	(eq? 'hello 'goodbye)      => #f   ; eq? is an identity test
 	(eq? 'hello 'hello)        => #t
 	(eq? '(1 2) '(1 2))        => #f
@@ -250,7 +250,7 @@ Equality and identity tests:
 
 Being a dialect of Lisp, Scheme provides a set of built-in functions for List manipulation:  cons, car, and cdr.
 
-```
+```scheme
 	;; Three equivalent ways to create the list (1 2 3),
 	;; calling it foo
 	(define foo '(1 2 3))
@@ -266,7 +266,7 @@ Being a dialect of Lisp, Scheme provides a set of built-in functions for List ma
 
 Iteration via recursion:
 
-```
+```scheme
 	;; Exponentiation function x^n
 	(define expt
 	  (lambda (x n)
@@ -284,7 +284,7 @@ Iteration via recursion:
 
 It is straightforward to create and use higher order functions. Indeed functions are first-class in Scheme, they can be passed as arguments to other functions:
 
-```
+```scheme
     (define compose
       (lambda (f g x)
         (f (g x))))

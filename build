@@ -1,2 +1,14 @@
 #!/bin/bash
-pandoc --latex-engine=pdflatex -H preamble.tex -V fontsize=12pt -V documentclass:book -V papersize:a4paper -V classoption:openright -V classoption:oneside --chapters --bibliography=papers.bib --csl="csl/ieee-with-url.csl" *-*.md -o "thesis.pdf"
+pandoc --highlight-style=tango \
+       --latex-engine=pdflatex \
+       -H preamble.tex \
+       -V fontsize=12pt \
+       -V documentclass:book \
+       -V papersize:a4paper \
+       -V classoption:openright \
+       -V classoption:oneside \
+       --chapters \
+       --bibliography=papers.bib \
+       --csl="csl/ieee-with-url.csl" \
+       *-*.md \
+       -o "thesis.pdf"

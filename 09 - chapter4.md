@@ -23,7 +23,7 @@ The top level handler, besides assembling the continuation object, resumes the e
 
 ![Stack and heap during a continuation capture \label{frames}](figures/frames.png)
 
-Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`. When `call/cc` is called the stack frames belonging to the continuation are under the `call/cc`'s one (assuming the stack growing bottom-up). Throwing the ContinuationException `call/cc` starts to unwind the stack, and consequently the heap starts to be populated by the continuation frames. When top level is reached, the handler creates the continuation object. At the end of the process, the `h` function is resumed with the continuation object bound to its single argument.
+Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`. When `call/cc` is called the stack frames belonging to the continuation are under the `call/cc`'s one (assuming the stack growing bottom-up). Throwing the `ContinuationException` `call/cc` starts to unwind the stack, and consequently the heap starts to be populated by the continuation frames. When top level is reached, the handler creates the continuation object. At the end of the process, the `h` function is resumed with the continuation object bound to its single argument.
 
 ![Stack and heap when reinstating a continuation \label{frames-call}](figures/frames-call.png)
 
@@ -54,7 +54,7 @@ The algoritm performs a monadic transformation combining three steps:
 
 1. Monadic conversion:
 
-```
+```scheme
    (+ 1                             (bind (if (>= x 0)
       (if (>= x 0)                            (f x)
           (f x)             -->               (return 0))
@@ -63,7 +63,7 @@ The algoritm performs a monadic transformation combining three steps:
 
 2. The result is interpreted in the identity monad:
 
-```
+```scheme
                 (return a)  =>  a
 
    (bind a (lambda (x) b))  =>  (let ((x a)) b)
@@ -77,7 +77,7 @@ The algoritm performs a monadic transformation combining three steps:
 
 3. Nested let are flattened:
 
-```
+```scheme
    (let ((x (let ((y a))               (let ((y a))
               b)))          -->          (let ((x b))
      c)                                    c))
@@ -90,7 +90,7 @@ An example of the entire transformation is showed below:
 
 1. original source
 
-```
+```scheme
     (define incr #f)
 
     (+ (call/cc
@@ -102,7 +102,7 @@ An example of the entire transformation is showed below:
 
 2. after a-normalization
 
-```
+```scheme
     (let ((v1 (lambda (k)              ; computation #1
 	        (let ((v0 (set! incr k)))
 	          0))))
@@ -112,7 +112,7 @@ An example of the entire transformation is showed below:
 
 3. after fragmentation
 
-```
+```scheme
     ((lambda (incr_an1)                ; fragment #1
       (let ((v1 (lambda (k)
 	              (let ((v0 (set! incr k)))
@@ -135,7 +135,7 @@ Beside fragmentation, instrumentation is performed installing exception handlers
 
 The following code resembles the final result after instrumentation:
 
-```
+```scheme
     ((lambda (incr_an1)
       (let ((v1 (lambda (k)
 	              (let ((v0 (set! incr k)))
@@ -144,7 +144,7 @@ The following code resembles the final result after instrumentation:
      (lambda (v1)
        ((lambda (incr_an2)
           (let ((v2 (try-catch (call/cc v1)             ; try/catch
-		              (cex <ContinuationException>      ; exception handler
+		              (cex <ContinuationException>      ; handler
 		                 (let ((f (lambda (continue-value)
 					         (incr_an2 continue-value))))
 			             (cex:extend (<ContinuationFrame> f))
