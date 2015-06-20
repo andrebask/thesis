@@ -10,7 +10,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 1. The first one uses nested static classes to implement the continuation frames of the function to be run:
 
-```
+```java
     class fib_frame0 extends Frame {
 
         int x;
@@ -43,7 +43,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 2. the second version uses `MethodHandle`s, that were introduced in Java 7. A `MethodHandle` is a typed, directly executable reference to an underlying method, constructor or field:
 
-```
+```java
     static Object fib_frame0_invoke(Object x, Object continue_value)
             throws SaveContinuationException, Exception {
          return fib_an0 ((int) x);
@@ -76,7 +76,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 3. the third using Java 8 lambdas, specified with the new Java syntax:
 
-```
+```java
     static Object fib_frame0_invoke(Object x, Object continue_value)
             throws SaveContinuationException, Exception {
          return fib_an0 ((int) x);
@@ -106,7 +106,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 4. last version that generates lambdas explicitly using LambdaMetafactory, an API introduced in Java 8 to facilitate the creation of simple "function objects".
 
-```
+```java
     fib_frame0_factory = LambdaMetafactory
                     .metafactory(lookup,
                                  "invoke",
@@ -140,7 +140,7 @@ The capture of a continuation, and in particular the stack coping mechanism, is 
 
 In Java, when throwing an exception, the most expensive operation is the construction of the stack trace, that is useful for debugging reasons. As well as we are not using exceptions with they original purpose, we can have rid of the stack trace construction and optimise the `Exception` object. It is sufficient to override the `fillInStackTrace` method of `Throwable`:
 
-```
+```java
     public static class FastException extends Exception {
 
         @Override
@@ -152,7 +152,7 @@ In Java, when throwing an exception, the most expensive operation is the constru
 
 I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a `FastException`.
 
-```
+```java
         // case 1
 		t.method1(i);
 
