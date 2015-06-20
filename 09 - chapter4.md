@@ -2,7 +2,7 @@
 
 > *"I don't care what anything was designed to do. I care about what it can do."*
 \begin{flushright}
-Gene Kranz, Apollo 13 (film, 1995)
+Apollo 13 (film, 1995)
 \end{flushright}
 
 ## The stack manipulation dilemma
@@ -25,8 +25,7 @@ The top level handler, besides assembling the continuation object, resumes the e
 
 Figure \ref{frames} shows what happens in the stack and in the heap when a continuation is captures by `call/cc`. When `call/cc` is called the stack frames belonging to the continuation are under the `call/cc`'s one (assuming the stack growing bottom-up). Throwing the ContinuationException `call/cc` starts to unwind the stack, and consequently the heap starts to be populated by the continuation frames. When top level is reached, the handler creates the continuation object. At the end of the process, the `h` function is resumed with the continuation object bound to its single argument.
 
-An interesting property of first-class continuations is that they can be invoked at any time, provided that they are saved in an accessible variable.
-When a continuation is invoked...
+An interesting property of first-class continuations is that they can be invoked at any time, provided that they are saved in an accessible variable. When a continuation is invoked, it throws an `ExitException`. This causes the stack to be unwind, as in the capture case. The top level handler in this case resumes the continuation frames stored in the continuation object. The final result is that the execution restart where it was suspended by the call/cc, while the heap continues to store the continuation object. This can be accessed other times, or can be garbage-collected if it is no more used.
 
 ![Stack and heap when reinstating a continuation \label{frames-call}](figures/frames-call.png)
 
