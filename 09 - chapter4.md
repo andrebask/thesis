@@ -155,8 +155,14 @@ The following code resembles the final result after instrumentation:
 ```
 
 ## Issues
-map
+### `call/cc` in higher order functions
+Because Kawa optimise some built-in procedures (like `map`, `foreach` and `filter`) implementing them as Java methods, and because of the global transformation needed by the `call/cc`, continuations cannot be captured inside functions passed to those higher order functions.  Indeed, the Java implementation of map (`gnu.kawa.functions.Map`) is not 'aware' of continuations, thus when you use `call/cc` inside the lambda passed to `map`, it will not be able to handle a ContinuationException, resulting in a runtime error.
 
-integration
+In the next chapter, we will see a possible solution to this problem.
 
-code size
+### code size
+The creation of fragments will introduce a number of extra code. Although the overhead should be small, there will be an increase in code size proportional to the number of code fragments.
+
+Code instrumentation introduces a number of try/catch blocks. This, will also increase code size proportional to the number of code fragments.
+
+### integration
