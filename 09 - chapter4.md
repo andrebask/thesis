@@ -84,7 +84,7 @@ The algoritm performs a monadic transformation combining three steps:
 ```
 
 ### Code fragmentation
-This transformation fragments the code in a sequence of function calls working on code previously a-normalized. Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewritten as a sequence of function calls, each call representing a computation step.
+This transformation, working on code previously a-normalized, fragments the code in a sequence of function calls. Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewritten as a sequence of function calls, each call representing a computation step. This way of fragmenting the source allows to avoid defining many top level procedures, that would also require an additional pass to perform live variable analysis.
 
 An example of the entire transformation is showed below:
 
