@@ -131,25 +131,25 @@ Kawa's support for lexical closures allows to completely avoid these steps. Each
 A continuation will be composed of a series of frames. A *frame* is an object with a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment, to continue the computation from the capture point. Also these frames will be closed over the live variables.
 
 ### Code Instrumentation
-Beside fragmentation, instrumentation is performed installing exception handlers around each computation step to enable the capture and resume of continuations. A try-catch expression is created around each computation to capture a possible `ContinuationException`. The installed exception handler adds a new frame (an invokable object enclosing a call the next computation step) to the list of frames included inside the `ContinuationException` object, than rethrows the exception.
+Beside fragmentation, instrumentation is performed installing exception handlers around each computation step to enable the capture and resume of continuations. Kawa supports `try-catch` expressions, which are translated directly to native `try/catch` statements in Java bytecode. A `try-catch` expression is created around each computation to capture a possible `ContinuationException`. The installed exception handler adds a new frame (an invokable object enclosing a call the next computation step) to the list of frames included inside the `ContinuationException` object, than rethrows the exception.
 
 The following code resembles the final result after instrumentation:
 
 ```
     ((lambda (incr_an1)
       (let ((v1 (lambda (k)
-	           (let ((v0 (set! incr k)))
-		     0))))
+	              (let ((v0 (set! incr k)))
+		            0))))
          (incr_an1 v1)))
      (lambda (v1)
        ((lambda (incr_an2)
-          (let ((v2 (try-catch (call/cc v1)
-		     (cex <ContinuationException>
-		          (let ((f (lambda (continue-value)
-					    (incr_an2 continue-value))))
-			    (cex:extend (<ContinuationFrame> f))
-			    (throw cex))))))
-	    (incr_an2 v2)))
+          (let ((v2 (*try-catch* (call/cc v1)
+		              (cex <ContinuationException>
+		                 (let ((f (lambda (continue-value)
+					         (incr_an2 continue-value))))
+			             (cex:extend (<ContinuationFrame> f))
+			             (throw cex))))))
+	        (incr_an2 v2)))
         (lambda (v2)
           (+ v2 1)))))
 ```
@@ -160,9 +160,7 @@ Because Kawa optimise some built-in procedures (like `map`, `foreach` and `filte
 
 In the next chapter, we will see a possible solution to this problem.
 
-### code size
+### Code size
 The creation of fragments will introduce a number of extra code. Although the overhead should be small, there will be an increase in code size proportional to the number of code fragments.
 
 Code instrumentation introduces a number of try/catch blocks. This, will also increase code size proportional to the number of code fragments.
-
-### integration
