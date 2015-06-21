@@ -273,6 +273,8 @@ When a continuation is invoked, we actually call the `apply` method of `Continua
     }
 ```
 
+The `Continuation` object also contains the method to resume the continuation. `reloadFrames` Iterates over the list of frames in reverse order to re-establish the saved continuation reconstructing the stack. The topmost frame gets the restart value passed into it.
+
 ```java
     Object resume(final Object restartValue) throws Throwable {
         return reloadFrames(frames.size()-1, restartValue);
