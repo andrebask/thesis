@@ -5,7 +5,7 @@
 The Empire Strikes Back (film, 1980)
 \end{flushright}
 
-## A demonstrative instance of the transformation in Java
+## An instance of the transformation in Java
 As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls:
 
 1. The first one uses nested static classes to implement the continuation frames of the function to be run:
@@ -202,6 +202,8 @@ For capturing and resuming continuations we need a framework to support all the 
     }
 ```
 
+The basic blocks of a continuation are its `ContinuationFrame`s. A `ContinuationFrame` (for brevity, a frame) is a simple data structure which contains a single computation (a `Procedure` that takes one argument), and a list of `ContinuationFrame`s. The list is used by the next capture of a continuation. All the frames needed to assemble a continuation are collected using a `ContinuationException`. This class extends `FastException` and stores the list of frames which is extended step by step by the chain of throws. It contains also a list of frames that have been already reloaded by a previously call to `call/cc`. When the exception reaches the top level exception handler, this calls the method `toContinuation` that builds a new `Continuation` object using the two lists.
+
 ```java
     public static class ContinuationException extends FastException {
 
@@ -224,6 +226,8 @@ For capturing and resuming continuations we need a framework to support all the 
         }
     }
 ```
+
+The `Continuation` constructor takes the two lists and assembles the continuation.
 
 ```java
 public class Continuation extends Procedure0or1 {
@@ -248,6 +252,8 @@ public class Continuation extends Procedure0or1 {
         }
     }
 ```
+
+When a continuation is invoked, we actually call the `apply` method of `Continuation`. Here we create a new procedure which, when called, resumes the continuation. We wrap the procedure in an exception so that, throwing it, we unload the current continuation. The top level handler will receive this exception and will use it to resume the invoked continuation.
 
 ```java
     public Object apply0() throws Throwable {
@@ -370,24 +376,15 @@ In Kawa there are mainly four compilation stages:
 
 
 ## A-Normalization in Kawa
-In the actual Java code "return" operation is called "identity", while the "bind" operation is called "normalizeName" as in the Flanagan et al. paper. The ExpVisitor type matching mechanism replaces the role of the "match" in the paper, while the Context class replaces the "k" parameter. Lambdas are simulated with classes for backward compatibility with Java version 7 and lower.
-
-Each visit[...]Exp method is called with two parameters, an expression and a context (the very first context is the identity function that returns its argument). If the visit method is called with a non-atomic expression a new context is created and the passed context is called only inside the new one. The new-context is then passed to "normalizeName"  that has two purposes:
-
-1. to create a context, that generates a "let" expression to let-bind the expression next to come in the "visiting" process;
-2. to call visit() on the passed expression, to continue the syntax tree traversing.
-
-This chain will finish when a leaf (an atomic expression) is encountered in the tree, in this case the passed context is invoked (which in turn will invoke the previous context and so on). At this point the chain of context invocations starts to wrap each expression in a "let" binding, processing the expressions backward, and enclosing them step by step in nested "let" expressions. This backward traversing stops when the context called is the identity function.
-
-When the expression to normalize is a conditional, "normalizeTerm" is used on each branch expression. Instead of creating a let binding for each branch, as they cannot be evaluated before the test outcome, "normalizeTerm" calls the visit method with the identity context, restarting the normalization in each branch.
 
 ## Code fragmentation in Kawa
-
 
 ### Creating lambda closures
 
 ## Code Instrumentation in Kawa
 
+### Install top level handlers
+
 ### Creating try-catch expressions
 
-### Install top level handlers
+## in higher order functions
