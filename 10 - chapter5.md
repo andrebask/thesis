@@ -188,9 +188,186 @@ The results from 10 million iterations are shown in the following table.
 | catched, optimised | 1330      |
 
 ## Support code
+For capturing and resuming continuations we need a framework to support all the required operations, such as construct an object that models the continuation, and turn a continuation object back into an actual continuation.
+
+```java
+    public static class ContinuationFrame {
+
+        Procedure computation;
+        ArrayList<ContinuationFrame> continuation;
+
+        public ContinuationFrame(Procedure frame) {
+            computation = frame;
+        }
+    }
+```
+
+```java
+    public static class ContinuationException extends FastException {
+
+        ArrayList<ContinuationFrame>
+        newCapturedFrames = new ArrayList<ContinuationFrame>();
+
+        ArrayList<ContinuationFrame> reloadedFrames;
+
+        public void extend(ContinuationFrame extension) {
+            newCapturedFrames.add(extension);
+        }
+
+        public void append(ArrayList<ContinuationFrame> oldFrames) {
+            reloadedFrames = oldFrames;
+        }
+
+        public Continuation toContinuation() throws Exception {
+            return new Continuation(newCapturedFrames,
+                                    reloadedFrames);
+        }
+    }
+```
+
+```java
+public class Continuation extends Procedure0or1 {
+
+    ArrayList<ContinuationFrame> frames;
+
+    public Continuation(ArrayList<ContinuationFrame> newFrames,
+                        ArrayList<ContinuationFrame> oldFrames) {
+
+        frames = (oldFrames != null)
+                 ? new ArrayList<ContinuationFrame>(oldFrames)
+		         : new ArrayList<ContinuationFrame>();
+
+        for(int i = newFrames.size()-1; i >= 0; i--) {
+            ContinuationFrame newFrame = newFrames.get(i);
+            if (newFrame.continuation != null) {
+                throw new Error("Continuation should be empty here");
+            }
+            newFrame.continuation
+			    = new ArrayList<ContinuationFrame>(frames);
+            frames.add(newFrame);
+        }
+    }
+```
+
+```java
+    public Object apply0() throws Throwable {
+        return apply1(Values.empty);
+    }
+
+    public Object apply1(final Object val) throws Throwable {
+
+        Procedure t = new Procedure1() {
+
+            public Object apply1(Object ignored) throws Throwable {
+                return reloadFrames(frames.size()-2, val);
+            }
+        };
+
+        throw new ExitException(t);
+    }
+```
+
+```java
+    Object resume(final Object restartValue) throws Throwable {
+        return reloadFrames(frames.size()-1, restartValue);
+    }
+
+    Object reloadFrames(int endIndex, Object restartValue)
+    throws Throwable {
+        Object continueValue = restartValue;
+        for (int i = endIndex; i >= 0; i -= 1) {
+            ContinuationFrame frame = frames.get(i);
+            try {
+                continueValue = frame.computation.apply1(continueValue);
+            } catch (ContinuationException sce) {
+                sce.append(frame.continuation);
+                throw sce;
+            }
+        }
+        return continueValue;
+    }
+
+}
+```
+
+```java
+public class TopLevelHandler extends Procedure1 {
+
+    public Object apply1(Object arg1) throws Throwable {
+        return runInTopLevelHandler((Procedure) arg1);
+    }
+
+    public void compile(...) { ... }
+
+    public static Object runInTopLevelHandler(Procedure initialFrame)
+    throws Throwable {
+        while (true) {
+            try {
+                return invokeFrame(initialFrame);
+            } catch (ExitException rce) {
+                initialFrame = rce.thunk;
+            }
+        }
+    }
+
+    private static Object invokeFrame(final Procedure initialFrame)
+    throws Throwable {
+        try {
+            return initialFrame.apply1(null);
+        } catch (ContinuationException sce) {
+            final Continuation k = sce.toContinuation();
+
+            Procedure f = new Procedure1() {
+
+                public Object apply1(Object arg) throws Throwable {
+                    return k.resume(k);
+                }
+            };
+
+            throw new ExitException(f);
+        }
+    }
+}
+```
+
+```java
+public class CallCC extends Procedure1 {
+
+    public static final CallCC callcc = new CallCC();
+
+    public Object apply1(Object arg1) throws Throwable {
+        return call_cc((Procedure) arg1);
+    }
+
+    public void compile(...) { ... }
+
+    public static Object call_cc(final Procedure receiver)
+    throws ContinuationException {
+        try {
+            throw new ContinuationException();
+        } catch (ContinuationException sce) {
+            sce.extend(new ContinuationFrame(receiver));
+            throw sce;
+        }
+    }
+}
+```
+
 The Java port of the support code was also optimised by using arrays instead of
 
 ## A brief overview of Kawa's compilation process
+In Kawa there are mainly four compilation stages:
+
+1. Syntactic analysis - the first compilation stage reads the source input. The result is one or more Scheme forms (S-expressions), represented as lists.
+
+2. Semantic analysis - the main source form is rewritten into a set of nested `Expression` objects, which represents Kawa's abstract syntax tree. For instance, a `QuoteExp` represents a literal, or a quoted form, a `ReferenceExp` is a reference to a named variable, an `ApplyExp` is an application of a procedure func to an argument list args and a `LetExp` is used for let binding forms. The Scheme primitive syntax lambda is translated into a `LambdaExp`. Other sub-classes of `Expression` are `IfExp`, used for conditional expressions, `BeginExp`, used for compound expressions and `SetExp`, used for assignments. The top-level `Expression` object is a `ModuleExp` and can be considered the root of the AST. This stage also handles macro expansion and lexical name binding.
+
+3. Optimisation - an intermediate pass performs type-inference and various optimisation, such as constant folding, dead code elimination, function inlining.
+
+4. Code generation - the `ModuleExp` object is translated into one or more byte-coded classes. This is done by invoking the compile method recursively on the Expressions, which generates JVM instructions using the bytecode package, writing out the resulting class files.
+
+5. Loading - if the code is compiled and then immediately executed, the compiled code can be immediately turned into Java classes using the Java `ClassLoader` feature. Then the bytecode can be loaded into the Kawa run-time.
+
 
 ## A-Normalization in Kawa
 In the actual Java code "return" operation is called "identity", while the "bind" operation is called "normalizeName" as in the Flanagan et al. paper. The ExpVisitor type matching mechanism replaces the role of the "match" in the paper, while the Context class replaces the "k" parameter. Lambdas are simulated with classes for backward compatibility with Java version 7 and lower.

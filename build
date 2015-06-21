@@ -1,5 +1,5 @@
 #!/bin/bash
-pandoc --highlight-style=tango \
+pandoc --highlight-style=monochrome \
        --latex-engine=pdflatex \
        -H preamble.tex \
        -V fontsize=12pt \
