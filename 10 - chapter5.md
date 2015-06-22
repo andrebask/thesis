@@ -477,8 +477,8 @@ Another `ExpVisitor`, `FragmentAndInstrument`, performs the fragmentation and th
 [... parsing ...]
 
 ANormalize.aNormalize(mexp, this);
-FragmentAndInstrument.fragmentCode(mexp, this); // <-- fragmentation
-                                                //    and instrumentation
+FragmentAndInstrument.fragmentCode(mexp, this); //  <-- fragmentation
+                                                //and instrumentation
 InlineCalls.inlineCalls(mexp, this);
 ChainLambdas.chainLambdas(mexp, this);
 FindTailCalls.findTailCalls(mexp, this);
@@ -486,6 +486,34 @@ FindTailCalls.findTailCalls(mexp, this);
 [... code generation ...]
 ```
 
+
+
+```java
+public static void fragmentCode(Expression exp, Compilation comp) {
+    visitor.visit(exp, null);
+}
+```
+
+
+
+```java
+protected Expression visitModuleExp(ModuleExp exp, Void ignored) {
+
+    if (exp.body instanceof ApplyExp
+        && ((ApplyExp)exp.body).isAppendValues()) {
+        ApplyExp body = ((ApplyExp)exp.body);
+        for (int i = 0; i < body.args.length; i++) {
+            body.args[i] = installTopLevelHandler(visit(body.args[i], ignored));
+        }
+        return exp;
+    }
+
+    exp.body = installTopLevelHandler(visit(exp.body, ignored));
+
+    return exp;
+}
+
+```
 ### Creating lambda closures
 
 ## Code Instrumentation in Kawa
