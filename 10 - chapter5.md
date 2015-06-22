@@ -273,7 +273,7 @@ When a continuation is invoked, we actually call the `apply` method of `Continua
     }
 ```
 
-The `Continuation` object also contains the method to resume the continuation. `reloadFrames` Iterates over the list of frames in reverse order to re-establish the saved continuation reconstructing the stack. The topmost frame gets the restart value passed into it.
+The `Continuation` object also contains the method to resume the continuation. `reloadFrames` iterates over the list of frames in reverse order to re-establish the saved continuation reconstructing the stack. The topmost frame gets the restart value passed into it.
 
 ```java
     Object resume(final Object restartValue) throws Throwable {
@@ -297,6 +297,8 @@ The `Continuation` object also contains the method to resume the continuation. `
 
 }
 ```
+
+`TopLevelHandler` deals with running top level calls in an exception handler that catches instances of `ContinuationException`, thrown by `call/cc`, and `ExitException`, thrown by a continuation invocation. In the first case it creates a continuation object and resumes the execution of the function passed to `call/cc`. In the second case it calls the function enclosed in the `ExitException`, which reinstates the continuation.
 
 ```java
 public class TopLevelHandler extends Procedure1 {
@@ -338,10 +340,10 @@ public class TopLevelHandler extends Procedure1 {
 }
 ```
 
+The `CallCC` procedure implements `call/cc`. It throws a new `ContinuationException`, saving in it the `call/cc` argument (a Procedure).
+
 ```java
 public class CallCC extends Procedure1 {
-
-    public static final CallCC callcc = new CallCC();
 
     public Object apply1(Object arg1) throws Throwable {
         return call_cc((Procedure) arg1);
@@ -361,7 +363,7 @@ public class CallCC extends Procedure1 {
 }
 ```
 
-The Java port of the support code was also optimised by using arrays instead of
+A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using to much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java ArrayList, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
 
 ## A brief overview of Kawa's compilation process
 In Kawa there are mainly four compilation stages:
