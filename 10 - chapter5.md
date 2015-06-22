@@ -381,7 +381,62 @@ In Kawa there are mainly four compilation stages:
 
 ## A-Normalization in Kawa
 
+```java
+	[...]
+    ANormalize.aNormalize(mexp, this); // <-- A-normalization
+    FragmentAndInstrument.fragmentCode(mexp, this);
+    InlineCalls.inlineCalls(mexp, this);
+    ChainLambdas.chainLambdas(mexp, this);
+    FindTailCalls.findTailCalls(mexp, this);
+	[...]
+```
+    public static void aNormalize(Expression exp, Compilation comp) {
+        ANormalize visitor = new ANormalize();
+        visitor.setContext(comp);
+
+        // Starts the normalization of expression exp. It has the effect of
+        // monadic conversion plus interpreting it in the Identity monad.
+        visitor.visit(exp, identity);
+    }
+```java
+
+```
+
+```java
+    protected Expression visitModuleExp(ModuleExp exp, Context context) {
+        if (exp.body instanceof ApplyExp
+            && ((ApplyExp)exp.body).isAppendValues()) {
+            ApplyExp body = ((ApplyExp)exp.body);
+            for (int i = 0; i < body.args.length; i++) {
+              body.args[i] = visit(body.args[i], context);
+            }
+            return exp;
+        }
+
+        return visitExpression(exp, context);
+    }
+
+```
+
+```java
+
+```
+
+```java
+
+```
 ## Code fragmentation in Kawa
+
+```java
+	[...]
+    ANormalize.aNormalize(mexp, this);
+    FragmentAndInstrument.fragmentCode(mexp, this); // <-- fragmentation
+	                                                //    and instrumentation
+    InlineCalls.inlineCalls(mexp, this);
+    ChainLambdas.chainLambdas(mexp, this);
+    FindTailCalls.findTailCalls(mexp, this);
+	[...]
+```
 
 ### Creating lambda closures
 

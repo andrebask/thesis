@@ -146,7 +146,7 @@ The following code resembles the final result after instrumentation:
           (let ((v2 (try-catch (call/cc v1)             ; try/catch
 		              (cex <ContinuationException>      ; handler
 		                 (let ((f (lambda (continue-value)
-					         (incr_an2 continue-value))))
+					                (incr_an2 continue-value))))
 			             (cex:extend (<ContinuationFrame> f))
 			             (throw cex))))))               ; re-throw
 	        (incr_an2 v2)))
