@@ -366,7 +366,7 @@ public class CallCC extends Procedure1 {
 A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using to much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java ArrayList, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
 
 ## A brief overview of Kawa's compilation process
-In Kawa there are mainly four compilation stages:
+In Kawa there are mainly five compilation stages [@Bothner1998]:
 
 1. Syntactic analysis - the first compilation stage reads the source input. The result is one or more Scheme forms (S-expressions), represented as lists.
 
@@ -379,16 +379,18 @@ In Kawa there are mainly four compilation stages:
 5. Loading - if the code is compiled and then immediately executed, the compiled code can be immediately turned into Java classes using the Java `ClassLoader` feature. Then the bytecode can be loaded into the Kawa run-time.
 
 
-## A-Normalization in Kawa
+## A-Normalization
 I created a new `ExpVisitor` that manipulates the syntax tree implementing the transformation to ANF, already described in chapter 3. An `ExpVisitor` is Java class that can be extended to implement code that traverses the AST to apply a certain transformation. The new visitor, called `ANormalize`, performs the A-normalization pass just before the optimisation stage of the compiler.
 
 ```java
-[...]
+[... parsing ...]
+
 ANormalize.aNormalize(mexp, this); // <-- A-normalization
 InlineCalls.inlineCalls(mexp, this);
 ChainLambdas.chainLambdas(mexp, this);
 FindTailCalls.findTailCalls(mexp, this);
-[...]
+
+[... code generation  ...]
 ```
 
 We call the visit function on root of the AST, passing as context the identity function.
@@ -403,7 +405,8 @@ public static void aNormalize(Expression exp, Compilation comp) {
 The core of the A-normalizer is the `bind` function, here called `normalizeName`. `normalizeName` creates a new context, then will visit the expression with this new context. If the passed expression is atomic (cannot be further normalized), like a literal or an identifier, the new context calls the old context with the expression as input. Otherwise it creates a new `let` expression, binds the expression to a new variable in the `let` (with `genLetDeclaration`), then replaces every occurrence of the expression in the code with a reference to the just created variable (with `context.invoke(new ReferenceExp(decl))`).
 
 ```java
-protected Expression normalizeName(Expression exp, final Context context) {
+protected Expression normalizeName(Expression exp,
+	                               final Context context) {
     Context newContext = new Context() {
         @Override
         Expression invoke(Expression expr) {
@@ -430,8 +433,11 @@ protected Expression normalizeName(Expression exp, final Context context) {
 
 ```
 
+When the expression to normalize is a conditional, as its branches cannot be evaluated before the test outcome, we use `normalizeName` on each branch expression. Instead of creating a new variable for each branch, we restart the normalization in each branch.
+
 ```java
-protected Expression visitIfExp(final IfExp exp, final Context context) {
+protected Expression visitIfExp(final IfExp exp,
+                                final Context context) {
     Context newContext = new Context() {
 
         @Override
@@ -450,27 +456,34 @@ protected Expression visitIfExp(final IfExp exp, final Context context) {
 }
 ```
 
+When an atomic expression is encountered in the tree, the passed context is directly invoked with expression passed as argument. At this point the chain of context invocations starts to wrap each expression in a let binding, traversing the AST backward, nesting each non atomic expression in a new `let`.
+
 ```java
-protected Expression visitQuoteExp(QuoteExp exp, Context context) {
+protected Expression visitQuoteExp(QuoteExp exp,
+                                   Context context) {
     return context.invoke(exp);
 }
 
-protected Expression visitReferenceExp(ReferenceExp exp, Context context) {
+protected Expression visitReferenceExp(ReferenceExp exp,
+                                       Context context) {
     return context.invoke(exp);
 }
 ```
 
-## Code fragmentation in Kawa
+## Code fragmentation
+Another `ExpVisitor`, `FragmentAndInstrument`, performs the fragmentation and the instrumentation. As described in chapter 3, the new visitor transforms the code AST in sequence function calls. At the same time it wraps in a `try-catch` expression every atomic computation it encounters in the traversing. This visitor is inserted between the A-normalization and the optimisation pass.
 
 ```java
-[...]
+[... parsing ...]
+
 ANormalize.aNormalize(mexp, this);
 FragmentAndInstrument.fragmentCode(mexp, this); // <-- fragmentation
                                                 //    and instrumentation
 InlineCalls.inlineCalls(mexp, this);
 ChainLambdas.chainLambdas(mexp, this);
 FindTailCalls.findTailCalls(mexp, this);
-[...]
+
+[... code generation ...]
 ```
 
 ### Creating lambda closures
