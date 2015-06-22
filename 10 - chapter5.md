@@ -563,7 +563,7 @@ nextFragment.body = visit(nextFragment.body, ignored);
 return fragmentCall;
 ```
 
-## Code Instrumentation in Kawa
+## Code Instrumentation
  First of all, each top level expression is wrapped inside a `TopLevelHandler` call, which surrounds the expression with an exception handler, as seen in Chapter 3.
 
 ```java
@@ -634,9 +634,5 @@ annotatedExp.addCatchClause(handlerDecl, begin);
 annotatedExp.try_clause = visit(annotatedExp.try_clause, null);
 return annotatedExp;
 ```
-
-### Install top level handlers
-
-### Creating try-catch expressions
 
 ## Higher order functions
