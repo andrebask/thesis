@@ -370,7 +370,7 @@ In Kawa there are mainly four compilation stages:
 
 1. Syntactic analysis - the first compilation stage reads the source input. The result is one or more Scheme forms (S-expressions), represented as lists.
 
-2. Semantic analysis - the main source form is rewritten into a set of nested `Expression` objects, which represents Kawa's abstract syntax tree. For instance, a `QuoteExp` represents a literal, or a quoted form, a `ReferenceExp` is a reference to a named variable, an `ApplyExp` is an application of a procedure func to an argument list args and a `LetExp` is used for let binding forms. The Scheme primitive syntax lambda is translated into a `LambdaExp`. Other sub-classes of `Expression` are `IfExp`, used for conditional expressions, `BeginExp`, used for compound expressions and `SetExp`, used for assignments. The top-level `Expression` object is a `ModuleExp` and can be considered the root of the AST. This stage also handles macro expansion and lexical name binding.
+2. Semantic analysis - the main source form is rewritten into a set of nested `Expression` objects, which represents Kawa's *abstract syntax tree* (AST). For instance, a `QuoteExp` represents a literal, or a quoted form, a `ReferenceExp` is a reference to a named variable, an `ApplyExp` is an application of a procedure func to an argument list args and a `LetExp` is used for let binding forms. The Scheme primitive syntax lambda is translated into a `LambdaExp`. Other sub-classes of `Expression` are `IfExp`, used for conditional expressions, `BeginExp`, used for compound expressions and `SetExp`, used for assignments. The top-level `Expression` object is a `ModuleExp` and can be considered the root of the AST. This stage also handles macro expansion and lexical name binding.
 
 3. Optimisation - an intermediate pass performs type-inference and various optimisation, such as constant folding, dead code elimination, function inlining.
 
@@ -380,51 +380,86 @@ In Kawa there are mainly four compilation stages:
 
 
 ## A-Normalization in Kawa
+I created a new `ExpVisitor` that manipulates the syntax tree implementing the transformation to ANF, already described in chapter 3. An `ExpVisitor` is Java class that can be extended to implement code that traverses the AST to apply a certain transformation. The new visitor, called `ANormalize`, performs the A-normalization pass just before the optimisation stage of the compiler.
 
 ```java
 	[...]
     ANormalize.aNormalize(mexp, this); // <-- A-normalization
-    FragmentAndInstrument.fragmentCode(mexp, this);
     InlineCalls.inlineCalls(mexp, this);
     ChainLambdas.chainLambdas(mexp, this);
     FindTailCalls.findTailCalls(mexp, this);
 	[...]
 ```
 
+We call the visit function on root of the AST, passing as context the identity function.
+
 ```java
     public static void aNormalize(Expression exp, Compilation comp) {
-        ANormalize visitor = new ANormalize();
-        visitor.setContext(comp);
-
-        // Starts the normalization of expression exp. It has the effect of
-        // monadic conversion plus interpreting it in the Identity monad.
+		[...]
         visitor.visit(exp, identity);
     }
 ```
 
-```java
-    protected Expression visitModuleExp(ModuleExp exp, Context context) {
-        if (exp.body instanceof ApplyExp
-            && ((ApplyExp)exp.body).isAppendValues()) {
-            ApplyExp body = ((ApplyExp)exp.body);
-            for (int i = 0; i < body.args.length; i++) {
-              body.args[i] = visit(body.args[i], context);
-            }
-            return exp;
-        }
 
-        return visitExpression(exp, context);
+
+```java
+    protected Expression normalizeName(Expression exp, final Context context) {
+        Context newContext = new Context() {
+            @Override
+            Expression invoke(Expression expr) {
+                if (isAtomic(expr))
+                    return context.invoke(expr);
+                else {
+                    // create a new Let
+                    LetExp newlet = new LetExp();
+
+                    // create a new declaration in the let, using
+                    // the new expression value
+                    Declaration decl = genLetDeclaration(expr, newlet);
+
+                    // occurrences of expr in the next computation are
+                    // referenced
+                    // using the new declaration
+                    newlet.body = context.invoke(new ReferenceExp(decl));
+                    return newlet;
+                }
+            }
+        };
+
+        return visit(exp, newContext);
+    }
+```
+
+```java
+    protected Expression visitIfExp(final IfExp exp, final Context context) {
+        Context newContext = new Context() {
+
+            @Override
+            Expression invoke(Expression expr) {
+                exp.then_clause = normalizeTerm(exp.then_clause);
+                exp.else_clause = (exp.else_clause != null)
+                                  ? normalizeTerm(exp.else_clause)
+                                  : null;
+
+                exp.test = expr;
+
+                return context.invoke(exp);
+            }
+        };
+        return normalizeName(exp.test, newContext);
+    }
+```
+
+```java
+    protected Expression visitQuoteExp(QuoteExp exp, Context context) {
+        return context.invoke(exp);
     }
 
+    protected Expression visitReferenceExp(ReferenceExp exp, Context context) {
+        return context.invoke(exp);
+    }
 ```
 
-```java
-
-```
-
-```java
-
-```
 ## Code fragmentation in Kawa
 
 ```java
@@ -446,4 +481,4 @@ In Kawa there are mainly four compilation stages:
 
 ### Creating try-catch expressions
 
-## in higher order functions
+## Higher order functions
