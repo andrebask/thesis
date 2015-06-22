@@ -10,3 +10,5 @@ non-capturing overhead
 capturing performance
 
 more complex capturing performance
+
+code size

@@ -486,7 +486,85 @@ FindTailCalls.findTailCalls(mexp, this);
 [... code generation ...]
 ```
 
-The transformation starts at the root of the AST (a `ModuleExp`). Each top level expression is wrapped inside a `TopLevelHandler` call, which surrounds the expression with an exception handler, as seen in Chapter 3.
+The transformation starts at the root of the AST (a `ModuleExp`), and continues analysing each node of the tree recursively. The most relevant method in `FragmentAndInstrument` is `visitLetExp`, which deals with the transformation of `let` expressions.
+
+```java
+protected Expression visitLetExp(LetExp exp, Void ignored) {
+    Declaration letDecl = exp.firstDecl();
+    Expression nextExp = exp.body;
+    Expression continueValue = letDecl.getInitValue();
+```
+
+After A-normalization the code is mainly made by nested `let` expression that bind to a variable every atomic computation. `visitLetExp` takes a `LetExp` and transforms it in two closures, applying the first to the second one. The former closure executes an atomic computation and calls the latter closure. The latter closure contains the original body of the `let` expression, which will be further fragmented. Using the example from chapter 3:
+
+```scheme
+    ((lambda (incr_an1)        ;   <--   closure #1
+      (let ((v1 (lambda (k)
+	              (let ((v0 (set! incr k)))
+		            0))))
+         (incr_an1 v1)))
+     (lambda (v1)              ;  <--   closure #2
+       ((lambda (incr_an2)
+          (let ((v2 (call/cc v1)))
+	        (incr_an2 v2)))
+        (lambda (v2)
+          (+ v2 1)))))
+```
+
+The following code creates the first closure. It simply generates a new lambda expression that takes an argument. The original `LetExp` becomes the body of the lambda.
+
+```java
+Declaration nextFragmentDecl = new Declaration("continue-fragment");
+LambdaExp fragment = new LambdaExp(1);
+fragment.body = exp;
+fragment.addDeclaration(nextFragmentDecl);
+```
+
+We replace the let body with the call to the next fragment, that is `(incr_an1 v1)` in the previous Scheme example.
+
+```java
+exp.body = new ApplyExp(applyRef,
+                        new ReferenceExp(nextFragmentDecl),
+                        new ReferenceExp(letDecl));
+```
+
+The code that creates the second closure is very similar to which that generates the first one. An other new lambda expression that takes an argument. The body this time is the body of the original `LetExp`.
+
+```java
+Declaration continueValueDecl = new Declaration("continue-value");
+LambdaExp nextFragment = new LambdaExp(1);
+nextFragment.body = nextExp;
+nextFragment.addDeclaration(continueValueDecl);
+```
+
+We create a new function call, which applies the first lambda to the second one.
+
+```scheme
+    ((lambda (incr_an1)        ;   <--   closure #1
+      ...)
+     (lambda (v1)              ;  <--   closure #2
+       ...))
+```
+
+```java
+ApplyExp fragmentCall = new ApplyExp(fragment,
+                                     nextFragment);
+```
+
+Then we can move one to annotate with a `try-catch` the `let` binding (see next section), and to traverse the rest of the tree calling visit on the body of the second lambda.
+
+```java
+Expression annotatedExp = visitAndAnnotate(continueValue, nextFragmentDecl);
+letDecl.setInitValue(annotatedExp);
+
+// visit the rest of the code.
+nextFragment.body = visit(nextFragment.body, ignored);
+
+return fragmentCall;
+```
+
+## Code Instrumentation in Kawa
+ First of all, each top level expression is wrapped inside a `TopLevelHandler` call, which surrounds the expression with an exception handler, as seen in Chapter 3.
 
 ```java
 protected Expression visitModuleExp(ModuleExp exp, Void ignored) {
@@ -508,81 +586,27 @@ protected Expression visitModuleExp(ModuleExp exp, Void ignored) {
 
 ```
 
-The most relevant method in `FragmentAndInstrument` is `visitLetExp`, which deals with the transformation of `let` expressions. After A-normalization the code is mainly made by nested `let` expression that bind to a variable every atomic computation. `visitLetExp` takes a `LetExp` and transforms it in two closures, applying the first to the second one. The former closure executes an atomic computation and calls the latter closure. The latter closure contains the original body of the `let` expression, which will be further fragmented.
+Then we perform the main part of instrumentation in the `visitAndAnnotate` method, which we call on every `let` binding, as shown in the previous section. visitAndAnnotate creates a `TryExp` and an exception handler that catches ContinuationExceptions.
 
 ```java
-protected Expression visitLetExp(LetExp exp, Void ignored) {
-    Declaration letDecl = exp.firstDecl();
-    Expression nextExp = exp.body;
-    Expression continueValue = letDecl.getInitValue();
-```
+private Expression visitAndAnnotate(Expression exp,
+                                    Declaration nextFragmentDecl) {
 
-```java
-// Create the declaration that maps to the next fragment to call.
-Declaration nextFragmentDecl = new Declaration("continue-fragment");
 
-// Create the current fragment.
-LambdaExp fragment = new LambdaExp(1);
-fragment.body = exp;
-fragment.addDeclaration(nextFragmentDecl);
-```
-
-```java
-// replace the let body with the call to the next fragment.
-exp.body = new ApplyExp(applyRef,
-                        new ReferenceExp(nextFragmentDecl),
-                        new ReferenceExp(letDecl));
-```
-
-```java
-// Create the declaration that maps to the value that will be passed
-// to the next fragment.
-Declaration continueValueDecl = new Declaration("continue-value");
-
-// Create the next fragment
-LambdaExp nextFragment = new LambdaExp(1);
-nextFragment.body = nextExp;
-nextFragment.addDeclaration(continueValueDecl);
-```
-
-```java
-// Create the call of the current fragment, with the next fragment as
-// argument.
-ApplyExp fragmentCall = new ApplyExp(fragment,
-                                     nextFragment);
-
-// visit and wrap in the try-catch the computation of the current fragment.
-Expression annotatedExp = visitAndAnnotate(continueValue, nextFragmentDecl);
-letDecl.setInitValue(annotatedExp);
-```
-
-```java
-// visit the rest of the code.
-nextFragment.body = visit(nextFragment.body, ignored);
-
-return fragmentCall;
-```
-
-### Creating lambda closures
-
-## Code Instrumentation in Kawa
-
-```java
-private Expression visitAndAnnotate(Expression exp, Declaration nextFragmentDecl) {
-
-    // Create the TryExp and the handler that catches ContinuationExceptions
     TryExp annotatedExp = new TryExp(exp, null);
     Declaration handlerDecl = new Declaration((Object) null,
                                               contExpceptionType);
     ReferenceExp handlerDeclRef = new ReferenceExp(handlerDecl);
 ```
 
+It creates also  the frame with the call to the next fragment.
+
 ```java
-// Create the frame with the call to the next fragment.
 Declaration argDecl = new Declaration("continue-value");
-ApplyExp nextFragmentCall = new ApplyExp(applyRef,
-                                         new ReferenceExp(nextFragmentDecl),
-                                         new ReferenceExp(argDecl));
+ApplyExp nextFragmentCall = new ApplyExp
+                                 (applyRef,
+                                  new ReferenceExp(nextFragmentDecl),
+                                  new ReferenceExp(argDecl));
 
 Expression frame = createFrame(argDecl, nextFragmentCall);
 
@@ -591,7 +615,8 @@ Expression frame = createFrame(argDecl, nextFragmentCall);
 ApplyExp cframe = new ApplyExp(applyRef,
                                contFrameClass,
                                frame);
-ApplyExp extend = new ApplyExp(new PrimProcedure("Helpers", "extend", 2),
+ApplyExp extend = new ApplyExp(new PrimProcedure("Helpers",
+							                     "extend", 2),
                                handlerDeclRef,
                                cframe);
 ```
