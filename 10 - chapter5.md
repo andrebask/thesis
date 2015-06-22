@@ -390,6 +390,8 @@ In Kawa there are mainly four compilation stages:
     FindTailCalls.findTailCalls(mexp, this);
 	[...]
 ```
+
+```java
     public static void aNormalize(Expression exp, Compilation comp) {
         ANormalize visitor = new ANormalize();
         visitor.setContext(comp);
@@ -398,8 +400,6 @@ In Kawa there are mainly four compilation stages:
         // monadic conversion plus interpreting it in the Identity monad.
         visitor.visit(exp, identity);
     }
-```java
-
 ```
 
 ```java
