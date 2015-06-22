@@ -1,8 +1,12 @@
 # Evaluation
 
 > *“Extraordinary claims require extraordinary evidence.”*
+\begin{flushright}
+Carl Sagan, Encyclopedia Galactica
+\end{flushright}
 
-> Carl Sagan, Encyclopedia Galactica
+non-capturing overhead
 
-Comparing different Java call types
-Write your awesome discussion here!
+capturing performance
+
+more complex capturing performance
