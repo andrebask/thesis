@@ -383,94 +383,95 @@ In Kawa there are mainly four compilation stages:
 I created a new `ExpVisitor` that manipulates the syntax tree implementing the transformation to ANF, already described in chapter 3. An `ExpVisitor` is Java class that can be extended to implement code that traverses the AST to apply a certain transformation. The new visitor, called `ANormalize`, performs the A-normalization pass just before the optimisation stage of the compiler.
 
 ```java
-	[...]
-    ANormalize.aNormalize(mexp, this); // <-- A-normalization
-    InlineCalls.inlineCalls(mexp, this);
-    ChainLambdas.chainLambdas(mexp, this);
-    FindTailCalls.findTailCalls(mexp, this);
-	[...]
+[...]
+ANormalize.aNormalize(mexp, this); // <-- A-normalization
+InlineCalls.inlineCalls(mexp, this);
+ChainLambdas.chainLambdas(mexp, this);
+FindTailCalls.findTailCalls(mexp, this);
+[...]
 ```
 
 We call the visit function on root of the AST, passing as context the identity function.
 
 ```java
-    public static void aNormalize(Expression exp, Compilation comp) {
-		[...]
-        visitor.visit(exp, identity);
-    }
+public static void aNormalize(Expression exp, Compilation comp) {
+	[...]
+    visitor.visit(exp, identity);
+}
 ```
 
 
 
 ```java
-    protected Expression normalizeName(Expression exp, final Context context) {
-        Context newContext = new Context() {
-            @Override
-            Expression invoke(Expression expr) {
-                if (isAtomic(expr))
-                    return context.invoke(expr);
-                else {
-                    // create a new Let
-                    LetExp newlet = new LetExp();
+protected Expression normalizeName(Expression exp, final Context context) {
+    Context newContext = new Context() {
+        @Override
+        Expression invoke(Expression expr) {
+            if (isAtomic(expr))
+                return context.invoke(expr);
+            else {
+                // create a new Let
+                LetExp newlet = new LetExp();
 
-                    // create a new declaration in the let, using
-                    // the new expression value
-                    Declaration decl = genLetDeclaration(expr, newlet);
+                // create a new declaration in the let, using
+                // the new expression value
+                Declaration decl = genLetDeclaration(expr, newlet);
 
-                    // occurrences of expr in the next computation are
-                    // referenced
-                    // using the new declaration
-                    newlet.body = context.invoke(new ReferenceExp(decl));
-                    return newlet;
-                }
+                // occurrences of expr in the next computation are
+                // referenced
+                // using the new declaration
+                newlet.body = context.invoke(new ReferenceExp(decl));
+                return newlet;
             }
-        };
+        }
+    };
 
-        return visit(exp, newContext);
-    }
+    return visit(exp, newContext);
+}
+
 ```
 
 ```java
-    protected Expression visitIfExp(final IfExp exp, final Context context) {
-        Context newContext = new Context() {
+protected Expression visitIfExp(final IfExp exp, final Context context) {
+    Context newContext = new Context() {
 
-            @Override
-            Expression invoke(Expression expr) {
-                exp.then_clause = normalizeTerm(exp.then_clause);
-                exp.else_clause = (exp.else_clause != null)
-                                  ? normalizeTerm(exp.else_clause)
-                                  : null;
+        @Override
+        Expression invoke(Expression expr) {
+            exp.then_clause = normalizeTerm(exp.then_clause);
+            exp.else_clause = (exp.else_clause != null)
+                              ? normalizeTerm(exp.else_clause)
+                              : null;
 
-                exp.test = expr;
+            exp.test = expr;
 
-                return context.invoke(exp);
-            }
-        };
-        return normalizeName(exp.test, newContext);
-    }
+            return context.invoke(exp);
+        }
+    };
+    return normalizeName(exp.test, newContext);
+}
 ```
 
 ```java
-    protected Expression visitQuoteExp(QuoteExp exp, Context context) {
-        return context.invoke(exp);
-    }
+protected Expression visitQuoteExp(QuoteExp exp, Context context) {
+    return context.invoke(exp);
+}
 
-    protected Expression visitReferenceExp(ReferenceExp exp, Context context) {
-        return context.invoke(exp);
-    }
+protected Expression visitReferenceExp(ReferenceExp exp, Context context) {
+    return context.invoke(exp);
+}
 ```
 
 ## Code fragmentation in Kawa
 
 ```java
-	[...]
-    ANormalize.aNormalize(mexp, this);
-    FragmentAndInstrument.fragmentCode(mexp, this); // <-- fragmentation
-	                                                //    and instrumentation
-    InlineCalls.inlineCalls(mexp, this);
-    ChainLambdas.chainLambdas(mexp, this);
-    FindTailCalls.findTailCalls(mexp, this);
-	[...]
+[...]
+ANormalize.aNormalize(mexp, this);
+FragmentAndInstrument.fragmentCode(mexp, this); // <-- fragmentation
+                                                //    and instrumentation
+InlineCalls.inlineCalls(mexp, this);
+ChainLambdas.chainLambdas(mexp, this);
+FindTailCalls.findTailCalls(mexp, this);
+[...]
 ```
 
 ### Creating lambda closures
