@@ -400,7 +400,7 @@ public static void aNormalize(Expression exp, Compilation comp) {
 }
 ```
 
-
+The core of the A-normalizer is the `bind` function, here called `normalizeName`. `normalizeName` creates a new context, then will visit the expression with this new context. If the passed expression is atomic (cannot be further normalized), like a literal or an identifier, the new context calls the old context with the expression as input. Otherwise it creates a new `let` expression, binds the expression to a new variable in the `let` (with `genLetDeclaration`), then replaces every occurrence of the expression in the code with a reference to the just created variable (with `context.invoke(new ReferenceExp(decl))`).
 
 ```java
 protected Expression normalizeName(Expression exp, final Context context) {
@@ -418,8 +418,7 @@ protected Expression normalizeName(Expression exp, final Context context) {
                 Declaration decl = genLetDeclaration(expr, newlet);
 
                 // occurrences of expr in the next computation are
-                // referenced
-                // using the new declaration
+                // referenced using the new declaration
                 newlet.body = context.invoke(new ReferenceExp(decl));
                 return newlet;
             }
