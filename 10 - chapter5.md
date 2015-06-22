@@ -107,16 +107,16 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 4. last version that generates lambdas explicitly using LambdaMetafactory, an API introduced in Java 8 to facilitate the creation of simple "function objects".
 
 ```java
-    fib_frame0_factory = LambdaMetafactory
-                    .metafactory(lookup,
-                                 "invoke",
-                                 invokedType,
-                                 methodType,
-                                 lookup.findStatic(fib_meta.class,
-							                       "fib_frame0_invoke",
-								                   implType),
-                                 methodType)
-                    .dynamicInvoker();
+	fib_frame0_factory
+		= LambdaMetafactory
+            .metafactory(lookup,
+                         "invoke",
+                         invokedType,
+                         methodType,
+                         lookup.findStatic(fib_meta.class,
+							               "fib_frame0_invoke",
+								           implType),
+                         methodType).dynamicInvoker();
 
     static Object fib_frame0_invoke(Object x, Object continue_value)
             throws SaveContinuationException, Throwable {
@@ -477,8 +477,8 @@ Another `ExpVisitor`, `FragmentAndInstrument`, performs the fragmentation and th
 [... parsing ...]
 
 ANormalize.aNormalize(mexp, this);
-FragmentAndInstrument.fragmentCode(mexp, this); //  <-- fragmentation
-                                                //and instrumentation
+FragmentAndInstrument.fragmentCode(mexp, this);// <-- fragmentation
+                                              //and instrumentation
 InlineCalls.inlineCalls(mexp, this);
 ChainLambdas.chainLambdas(mexp, this);
 FindTailCalls.findTailCalls(mexp, this);
@@ -554,7 +554,8 @@ ApplyExp fragmentCall = new ApplyExp(fragment,
 Then we can move one to annotate with a `try-catch` the `let` binding (see next section), and to traverse the rest of the tree calling visit on the body of the second lambda.
 
 ```java
-Expression annotatedExp = visitAndAnnotate(continueValue, nextFragmentDecl);
+Expression annotatedExp = visitAndAnnotate(continueValue,
+                                           nextFragmentDecl);
 letDecl.setInitValue(annotatedExp);
 
 // visit the rest of the code.
@@ -586,7 +587,7 @@ protected Expression visitModuleExp(ModuleExp exp, Void ignored) {
 
 ```
 
-Then we perform the main part of instrumentation in the `visitAndAnnotate` method, which we call on every `let` binding, as shown in the previous section. visitAndAnnotate creates a `TryExp` and an exception handler that catches ContinuationExceptions.
+Then we perform the main part of instrumentation in the `visitAndAnnotate` method, which we call on every `let` binding, as shown in the previous section. `visitAndAnnotate` creates a `TryExp` and an exception handler that catches ContinuationExceptions.
 
 ```java
 private Expression visitAndAnnotate(Expression exp,
@@ -599,21 +600,17 @@ private Expression visitAndAnnotate(Expression exp,
     ReferenceExp handlerDeclRef = new ReferenceExp(handlerDecl);
 ```
 
-It creates also  the frame with the call to the next fragment.
+It creates also the frame needed to extend the `ContinuationException`. The frame is a lambda which contains the call to the next fragment. Then generates the code to create a `ContinuationFrame` with the frame just created. The lambda will be translated to a `Procedure` object at runtime.
 
 ```java
 Declaration argDecl = new Declaration("continue-value");
 ApplyExp nextFragmentCall = new ApplyExp
-                                 (applyRef,
-                                  new ReferenceExp(nextFragmentDecl),
+                                 (new ReferenceExp(nextFragmentDecl),
                                   new ReferenceExp(argDecl));
 
 Expression frame = createFrame(argDecl, nextFragmentCall);
 
-// Generate the code to create a ContinuationFrame with the frame
-// created above.
-ApplyExp cframe = new ApplyExp(applyRef,
-                               contFrameClass,
+ApplyExp cframe = new ApplyExp(contFrameClass,
                                frame);
 ApplyExp extend = new ApplyExp(new PrimProcedure("Helpers",
 							                     "extend", 2),
@@ -621,18 +618,17 @@ ApplyExp extend = new ApplyExp(new PrimProcedure("Helpers",
                                cframe);
 ```
 
+The last thing to generate is the re-throw instruction for the caught `ContinuationException`. Eventually we visit the annotated exp.
+
 ```java
-// Generate the re-throw of the catched Exception.
 ApplyExp throwApply = new ApplyExp(primitiveThrow,
                                    handlerDeclRef);
-throwApply.setType(Type.neverReturnsType);
 Expression begin = new BeginExp(extend, throwApply);
-
 annotatedExp.addCatchClause(handlerDecl, begin);
 
 // visit the wrapped expression
 annotatedExp.try_clause = visit(annotatedExp.try_clause, null);
 return annotatedExp;
 ```
-
+// TODO mettere esempi in Scheme
 ## Higher order functions
