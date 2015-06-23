@@ -587,20 +587,27 @@ protected Expression visitModuleExp(ModuleExp exp, Void ignored) {
 
 ```
 
-Then we perform the main part of instrumentation in the `visitAndAnnotate` method, which we call on every `let` binding, as shown in the previous section. `visitAndAnnotate` creates a `TryExp` and an exception handler that catches ContinuationExceptions.
+Then we perform the main part of instrumentation in the `visitAndAnnotate` method, which we call on every `let` binding, as shown in the previous section. In `visitAndAnnotate`, we create a `TryExp` and an exception handler that catches `ContinuationException`s.
 
 ```java
 private Expression visitAndAnnotate(Expression exp,
                                     Declaration nextFragmentDecl) {
-
-
     TryExp annotatedExp = new TryExp(exp, null);
     Declaration handlerDecl = new Declaration((Object) null,
                                               contExpceptionType);
     ReferenceExp handlerDeclRef = new ReferenceExp(handlerDecl);
 ```
 
-It creates also the frame needed to extend the `ContinuationException`. The frame is a lambda which contains the call to the next fragment. Then generates the code to create a `ContinuationFrame` with the frame just created. The lambda will be translated to a `Procedure` object at runtime.
+We also create the frame needed to extend the `ContinuationException`. The frame is a lambda which contains the call to the next fragment. Then we can generate the code to create a `ContinuationFrame` with the frame just created. The lambda will be translated to a `Procedure` object at runtime.
+
+```scheme
+(try-catch (call/cc v1)             ; try/catch
+  (cex <ContinuationException>      ; handler
+	(let ((f (lambda (continue-value)
+		       (incr_an2 continue-value))))
+	  (cex:extend (<ContinuationFrame> f))
+	  (throw cex))))                ; re-throw
+```
 
 ```java
 Declaration argDecl = new Declaration("continue-value");
@@ -618,7 +625,7 @@ ApplyExp extend = new ApplyExp(new PrimProcedure("Helpers",
                                cframe);
 ```
 
-The last thing to generate is the re-throw instruction for the caught `ContinuationException`. Eventually we visit the annotated exp.
+The last thing to generate is the re-throw instruction for the caught `ContinuationException`. Eventually, we visit the annotated exp to continue the tree traversing.
 
 ```java
 ApplyExp throwApply = new ApplyExp(primitiveThrow,
@@ -630,5 +637,6 @@ annotatedExp.addCatchClause(handlerDecl, begin);
 annotatedExp.try_clause = visit(annotatedExp.try_clause, null);
 return annotatedExp;
 ```
-// TODO mettere esempi in Scheme
+
 ## Higher order functions
+To make possible the capture of continuations inside higher order functions like `map` and `for-each`, I defined a Scheme version of the two functions. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside that functions. Thus the general idea is to add all the similar functions (e.g. `vector-map`, `vector-for-each etc`) in that module, or at least the most common ones.
