@@ -6,7 +6,7 @@ The Empire Strikes Back (film, 1980)
 \end{flushright}
 
 ## An instance of the transformation in Java
-As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls:
+As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls on the JVM:
 
 1. The first one uses nested static classes to implement the continuation frames of the function to be run:
 
@@ -15,17 +15,13 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
         int x;
 
-        public fib_frame0(int x) {
-            this.x = x;
-        }
-
+        public fib_frame0(int x) { this.x = x; }
         @Override
         public Object invoke(Object return_value)
                 throws ContinuationException, Throwable {
             // call to the next fragment
             return fib_an0(x);
         }
-
     }
 
 	public int fib_an(int x)
@@ -74,7 +70,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-3. the third using Java 8 lambdas, specified with the new Java syntax:
+3. the third version uses Java 8 lambdas, specified with the new Java syntax:
 
 ```java
     static Object fib_frame0_invoke(Object x, Object continue_value)
@@ -104,7 +100,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 ```
 
-4. last version that generates lambdas explicitly using LambdaMetafactory, an API introduced in Java 8 to facilitate the creation of simple "function objects".
+4. the last version generates lambdas explicitly using LambdaMetafactory, an API introduced in Java 8 to facilitate the creation of simple function objects.
 
 ```java
 	fib_frame0_factory
@@ -129,14 +125,14 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-I tested each type of method call with JMH, a benchmarking framework for the JVM. Figures \ref{calls-table, calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to loose the compatibility with previous version of the JVM for such a small improvement.
+I tested each type of method call with JMH [@jmh2015; @BenchmarkingJVM2015], a benchmarking framework for the JVM. Figures \ref{calls-table, calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to re-design a significant part of the compiler, and to loose the compatibility with previous version of the JVM, for such a small improvement.
 
 ![Performance comparison of different types of call in Java \label{calls-table}](figures/calls-table.pdf)
 
 ![Performance comparison of different types of call in Java \label{calls}](figures/calls.png)
 
 ### Exceptions performance in Java
-The capture of a continuation, and in particular the stack coping mechanism, is driven by exception throwing and exception handling. Therefore, is crucial to understand how the installation of exception handlers and the construction of an Exception object impact the performance.
+The capture of a continuation, and in particular the stack copying mechanism, is driven by exception throwing and exception handling. Therefore, is crucial to understand how the installation of exception handlers and the construction of an Exception object impact the performance.
 
 In Java, when throwing an exception, the most expensive operation is the construction of the stack trace, that is useful for debugging reasons. As well as we are not using exceptions with they original purpose, we can have rid of the stack trace construction and optimise the `Exception` object. It is sufficient to override the `fillInStackTrace` method of `Throwable`:
 
@@ -186,6 +182,8 @@ The results from 10 million iterations are shown in the following table.
 | non cached         | 1240      |
 | catched            | 35482     |
 | catched, optimised | 1330      |
+
+As you can see, to catch a `FastException` introduces a negligible overhead, while instantiating an `Exception` with its stack trace is more than an order of magnitude more expensive.
 
 ## Support code
 For capturing and resuming continuations we need a framework to support all the required operations, such as construct an object that models the continuation, and turn a continuation object back into an actual continuation.
@@ -253,7 +251,7 @@ public class Continuation extends Procedure0or1 {
     }
 ```
 
-When a continuation is invoked, we actually call the `apply` method of `Continuation`. Here we create a new procedure which, when called, resumes the continuation. We wrap the procedure in an exception so that, throwing it, we unload the current continuation. The top level handler will receive this exception and will use it to resume the invoked continuation.
+When a continuation is invoked, we actually call the `apply` method of `Continuation`. Here we create a new procedure which, when called, resumes the continuation. We wrap the procedure in an exception so that, throwing it, we unload the *current* continuation. The top level handler will receive this exception and will use it to resume the *invoked* continuation.
 
 ```java
     public Object apply0() throws Throwable {
@@ -340,7 +338,7 @@ public class TopLevelHandler extends Procedure1 {
 }
 ```
 
-The `CallCC` procedure implements `call/cc`. It throws a new `ContinuationException`, saving in it the `call/cc` argument (a Procedure).
+The `CallCC` procedure implements `call/cc`. It throws a new `ContinuationException`, saving in it the `call/cc` argument (a `Procedure` object).
 
 ```java
 public class CallCC extends Procedure1 {
@@ -363,18 +361,18 @@ public class CallCC extends Procedure1 {
 }
 ```
 
-A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using to much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java ArrayList, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
+A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using to much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java `ArrayList`, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
 
 ## A brief overview of Kawa's compilation process
 In Kawa there are mainly five compilation stages [@Bothner1998]:
 
 1. Syntactic analysis - the first compilation stage reads the source input. The result is one or more Scheme forms (S-expressions), represented as lists.
 
-2. Semantic analysis - the main source form is rewritten into a set of nested `Expression` objects, which represents Kawa's *abstract syntax tree* (AST). For instance, a `QuoteExp` represents a literal, or a quoted form, a `ReferenceExp` is a reference to a named variable, an `ApplyExp` is an application of a procedure func to an argument list args and a `LetExp` is used for let binding forms. The Scheme primitive syntax lambda is translated into a `LambdaExp`. Other sub-classes of `Expression` are `IfExp`, used for conditional expressions, `BeginExp`, used for compound expressions and `SetExp`, used for assignments. The top-level `Expression` object is a `ModuleExp` and can be considered the root of the AST. This stage also handles macro expansion and lexical name binding.
+2. Semantic analysis - the main source form is rewritten into a set of nested `Expression` objects, which represents Kawa's *abstract syntax tree* (AST). For instance, a `QuoteExp` represents a literal, or a quoted form, a `ReferenceExp` is a reference to a named variable, an `ApplyExp` is an application of a procedure func to an argument list and a `LetExp` is used for let binding forms. The Scheme primitive syntax lambda is translated into a `LambdaExp`. Other sub-classes of `Expression` are `IfExp`, used for conditional expressions, `BeginExp`, used for compound expressions and `SetExp`, used for assignments. The top-level `Expression` object is a `ModuleExp` and can be considered the root of the AST. This stage also handles macro expansion and lexical name binding.
 
-3. Optimisation - an intermediate pass performs type-inference and various optimisation, such as constant folding, dead code elimination, function inlining.
+3. Optimisation - an intermediate pass performs type-inference and various optimisation, such as constant folding, dead code elimination and function inlining.
 
-4. Code generation - the `ModuleExp` object is translated into one or more byte-coded classes. This is done by invoking the compile method recursively on the Expressions, which generates JVM instructions using the bytecode package, writing out the resulting class files.
+4. Code generation - the `ModuleExp` object is translated into one or more byte-coded classes. This is done by invoking a `compile` method recursively on the `Expression`s, which generates JVM instructions using the bytecode package, writing out the resulting class files.
 
 5. Loading - if the code is compiled and then immediately executed, the compiled code can be immediately turned into Java classes using the Java `ClassLoader` feature. Then the bytecode can be loaded into the Kawa run-time.
 
@@ -393,7 +391,7 @@ FindTailCalls.findTailCalls(mexp, this);
 [... code generation  ...]
 ```
 
-We call the visit function on root of the AST, passing as context the identity function.
+At first, we call the visit function on root of the AST, passing as context the identity function.
 
 ```java
 public static void aNormalize(Expression exp, Compilation comp) {
@@ -402,7 +400,7 @@ public static void aNormalize(Expression exp, Compilation comp) {
 }
 ```
 
-The core of the A-normalizer is the `bind` function, here called `normalizeName`. `normalizeName` creates a new context, then will visit the expression with this new context. If the passed expression is atomic (cannot be further normalized), like a literal or an identifier, the new context calls the old context with the expression as input. Otherwise it creates a new `let` expression, binds the expression to a new variable in the `let` (with `genLetDeclaration`), then replaces every occurrence of the expression in the code with a reference to the just created variable (with `context.invoke(new ReferenceExp(decl))`).
+The core of the A-normalizer is the `bind` function, already introduced in Chapter 3, here called `normalizeName`. `normalizeName` creates a new context, then it will visit the expression with this new context. If the passed expression is atomic (cannot be further normalized), like a literal or an identifier, the new context calls the old context with the expression as input. Otherwise it creates a new `let` expression, binds the expression to a new variable in the `let` (with `genLetDeclaration`), then replaces every occurrence of the expression in the code with a reference to the just created variable (with `context.invoke(new ReferenceExp(decl))`).
 
 ```java
 protected Expression normalizeName(Expression exp,
@@ -471,7 +469,7 @@ protected Expression visitReferenceExp(ReferenceExp exp,
 ```
 
 ## Code fragmentation
-Another `ExpVisitor`, `FragmentAndInstrument`, performs the fragmentation and the instrumentation. As described in chapter 3, the new visitor transforms the code AST in a sequence function calls. At the same time it wraps in a `try-catch` expression every atomic computation it encounters in the traversing. This stage is inserted between the A-normalization and the optimisation pass.
+Another `ExpVisitor`, `FragmentAndInstrument`, performs the fragmentation and the instrumentation. As described in Chapter 3, the new visitor transforms the code in a sequence function calls. At the same time it wraps in a `try-catch` expression every atomic computation it encounters in the traversing. This stage is inserted between the A-normalization and the optimisation pass.
 
 ```java
 [... parsing ...]
@@ -528,7 +526,7 @@ exp.body = new ApplyExp(applyRef,
                         new ReferenceExp(letDecl));
 ```
 
-The code that creates the second closure is very similar to which that generates the first one. An other new lambda expression that takes an argument. The body this time is the body of the original `LetExp`.
+The code that creates the second closure is very similar to which that generates the first one. It is an other new lambda expression that takes an argument. The body this time is the body of the original `LetExp`.
 
 ```java
 Declaration continueValueDecl = new Declaration("continue-value");
@@ -565,7 +563,7 @@ return fragmentCall;
 ```
 
 ## Code Instrumentation
- First of all, each top level expression is wrapped inside a `TopLevelHandler` call, which surrounds the expression with an exception handler, as seen in Chapter 3.
+First of all, each top level expression is wrapped inside a `TopLevelHandler` call, which surrounds the expression with an exception handler, as seen in Chapter 3.
 
 ```java
 protected Expression visitModuleExp(ModuleExp exp, Void ignored) {
@@ -598,7 +596,7 @@ private Expression visitAndAnnotate(Expression exp,
     ReferenceExp handlerDeclRef = new ReferenceExp(handlerDecl);
 ```
 
-We also create the frame needed to extend the `ContinuationException`. The frame is a lambda which contains the call to the next fragment. Then we can generate the code to create a `ContinuationFrame` with the frame just created. The lambda will be translated to a `Procedure` object at runtime.
+We also create the frame needed to extend the `ContinuationException`. The frame computation is a lambda which contains the call to the next fragment. Then we can generate the code to create a `ContinuationFrame` with the lambda just created. The lambda will be translated to a `Procedure` object at runtime.
 
 ```scheme
 (try-catch (call/cc v1)             ; try/catch
