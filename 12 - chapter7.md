@@ -8,7 +8,7 @@ Carl Sagan, Encyclopedia Galactica
 ## Transformation overhead
 We saw in the previous chapters how we can implement `call/cc` on a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.
 
-I used a set of benchmark to analyse the behaviour of the running code in the case both transformed code and non-transformed code. The table in Figure \ref{overhead-table} and the chart in figure \label{overhead} show the results.
+I used a set of benchmark to analyse the behaviour of the running code in the case both transformed code and non-transformed code. The table in Figure \ref{overhead-table} and the chart in Figure \ref{overhead} show the results.
 
 ![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.pdf)
 
@@ -23,12 +23,15 @@ I tested the new `call/cc` implementation on five continuation-intensive benchma
 
 ![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
 
+Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures \ref{compiled} and \ref{compiled-tab} compares the execution time of code compiled by five compilers, including the modified version of Kawa.
+
 ![Capturing benchmark (pre-compiled code), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
 
 ![Capturing benchmark (pre-compiled code), 10 iterations \label{compiled}](figures/compiled.png)
 
 ## Code size
-
-![Size of compiled classes in bytes \label{codesize}](figures/codesize.png)
+We saw in Chapter 3 that we expect an increase in code size proportional to the number of code fragments, so we want to measure the actual difference in size between a regular class file and an instrumented one. Figure \ref{codesize-tab} shows a comparison of regular code and transformed code.
 
 ![Code size comparison \label{codesize-tab}](figures/codesize-table.pdf)
+
+![Size of compiled classes in bytes \label{codesize}](figures/codesize.png)
