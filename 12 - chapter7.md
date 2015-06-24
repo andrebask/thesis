@@ -17,6 +17,7 @@ The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` imp
 ![Transformed vs non-transformed code, performance comparison \label{overhead}](figures/overhead.png)
 
 ## Capturing performance
+I tested the new `call/cc` implementation on five continuation-intensive benchmarks. `fibc` is a variation of `fib` with continuations. The `loop2` benchmark corresponds to a non-local-exit scenario in which a tight loop repeatedly throws to the same continuation. The `ctak` benchmark is a continuation-intensive variation of the call-intensive `tak` benchmark. The ctak benchmark captures a continuation on every procedure call and throws a continuation on every return. I compared the modified version of Kawa with SISC, the only other JVM Scheme supporting `call/cc`, and other Scheme implementations with a JIT compiler targeting either native machine code or an internal VM.
 
 ![Capturing benchmark (interpreted code), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
 
