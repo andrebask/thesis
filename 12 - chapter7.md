@@ -12,7 +12,7 @@ I used a set of benchmark to analyse the behaviour of the running code in the ca
 
 ![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.pdf)
 
-The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` implements the Tak function and runs it with 18, 12, 6. `cpstak` is a version of `tak` rewritten in continuation passing style.
+The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` implements the Takeuchi function and runs it with 18, 12, 6. `cpstak` is a version of `tak` rewritten in continuation passing style. We can observe that the transformation introduces a considerable overhead, especially in the `fib` benchmark.
 
 ![Transformed vs non-transformed code, performance comparison \label{overhead}](figures/overhead.png)
 
