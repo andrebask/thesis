@@ -23,6 +23,6 @@ Carl Sagan, Encyclopedia Galactica
 
 ## Code size
 
-![\label{codesize}](figures/codesize.png)
+![Size of compiled classes in bytes \label{codesize}](figures/codesize.png)
 
-![\label{codesize-tab}](figures/codesize-table.pdf)
+![Code size comparison \label{codesize-tab}](figures/codesize-table.pdf)
