@@ -11,17 +11,17 @@ Carl Sagan, Encyclopedia Galactica
 
 ![Transformed vs non-transformed code, performance comparison \label{overhead}](figures/overhead.png)
 
-## capturing performance
+## Capturing performance
 
-![\label{interp-tab}](figures/interpreted-table.pdf)
+![Capturing benchmark (code interpreted), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
 
-![\label{interp}](figures/interpreted.png)
+![Capturing benchmark (code interpreted), 10 iterations \label{interp}](figures/interpreted.png)
 
-![\label{compiled-tab}](figures/compiled-table.pdf)
+![Capturing benchmark (code pre-compiled), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
 
-![\label{compiled}](figures/compiled.png)
+![Capturing benchmark (code pre-compiled), 10 iterations \label{compiled}](figures/compiled.png)
 
-## code size
+## Code size
 
 ![\label{codesize}](figures/codesize.png)
 
