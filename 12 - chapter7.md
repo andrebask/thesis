@@ -6,6 +6,9 @@ Carl Sagan, Encyclopedia Galactica
 \end{flushright}
 
 ## Transformation overhead
+We saw in the previous chapters how we can implement `call/cc` on a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.
+
+I used a set of benchmark to analyse the behaviour of the running code in the case both transformed code and non-transformed code. The table in Figure \ref{overhead-table} shows the results.
 
 ![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.pdf)
 
