@@ -32,6 +32,6 @@ Some of the Scheme implementations introduced above can pre-compile code to a by
 ## Code size
 We saw in Chapter 3 that we expect an increase in code size proportional to the number of code fragments, so we want to measure the actual difference in size between a regular class file and an instrumented one. Figure \ref{codesize-tab} shows a comparison of regular code and transformed code.
 
-![Code size comparison \label{codesize-tab}](figures/codesize-table.pdf)
+![Code size comparison, values in bytes \label{codesize-tab}](figures/codesize-table.pdf)
 
 ![Size of compiled classes in bytes \label{codesize}](figures/codesize.png)
