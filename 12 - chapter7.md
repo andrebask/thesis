@@ -5,10 +5,14 @@
 Carl Sagan, Encyclopedia Galactica
 \end{flushright}
 
-non-capturing overhead
+## Transformation overhead
 
-capturing performance
+![\label{stack}](figures/overhead-table.pdf)
+
+![\label{stack}](figures/overhead.png)
+
+## capturing performance
 
 more complex capturing performance
 
-code size
+## code size
