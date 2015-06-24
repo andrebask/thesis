@@ -12,19 +12,19 @@ I used a set of benchmark to analyse the behaviour of the running code in the ca
 
 ![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.pdf)
 
-The `fib` benchmark runs a simple fibonacci function with 30 as input. `tak` implements the Tak function and runs it with 18, 12, 6. `cpstak` is a version of tak rewritten in continuation passing style.
+The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` implements the Tak function and runs it with 18, 12, 6. `cpstak` is a version of `tak` rewritten in continuation passing style.
 
 ![Transformed vs non-transformed code, performance comparison \label{overhead}](figures/overhead.png)
 
 ## Capturing performance
 
-![Capturing benchmark (code interpreted), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
+![Capturing benchmark (interpreted code), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
 
-![Capturing benchmark (code interpreted), 10 iterations \label{interp}](figures/interpreted.png)
+![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
 
-![Capturing benchmark (code pre-compiled), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
+![Capturing benchmark (pre-compiled code), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
 
-![Capturing benchmark (code pre-compiled), 10 iterations \label{compiled}](figures/compiled.png)
+![Capturing benchmark (pre-compiled code), 10 iterations \label{compiled}](figures/compiled.png)
 
 ## Code size
 
