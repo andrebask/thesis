@@ -31,9 +31,9 @@ I tested the new `call/cc` implementation on five continuation-intensive benchma
 
 ![Capturing benchmark (interpreted code), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
 
-![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
-
 Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures \ref{compiled-tab} and \ref{compiled} compares the execution time of code compiled by five compilers, including the modified version of Kawa.
+
+![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
 
 ![Capturing benchmark (pre-compiled code), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
 
