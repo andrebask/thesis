@@ -1,9 +1,19 @@
 # Case studies
 
 ## Debugger
-Write your awesome discussion here!
 
 ## Async-Await
 
+### coroutines
 
-Continuation prompts?
+### reset/shift
+
+### async with coroutines
+
+### async with threds
+
+## prompts
+
+### call-with-continuation-prompt
+
+### call-with-continuation-barrier
