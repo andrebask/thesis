@@ -24,7 +24,7 @@ We can reach the same conclusions analysing the heap usage. Figure \ref{heap} sh
 
 ![Most allocated Java object during the execution of the `fib` benchmark \label{heap}](figures/heap.pdf)
 
-![Transformed vs non-transformed code, values in Kbytes \label{mem-overhead-table} \label{heap}](figures/mem-overhead-table.pdf)
+![memory usage in transformed vs non-transformed code, values in Kbytes \label{mem-overhead-table} \label{heap}](figures/mem-overhead-table.pdf)
 
 ![Transformed vs non-transformed code, memory usage comparison \label{heap}](figures/mem-overhead.png)
 
