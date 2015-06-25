@@ -20,20 +20,22 @@ To understand from where this overhead comes from, I profiled the execution of t
 
 ![Most called Java methods in the `fib` benchmark \label{cpu}](figures/cpu.pdf)
 
-We can reach the same conclusions analysing the heap usage. Figure \ref{heap} shows which objects are more often allocated during the execution of `fib`. Almost 40% of the heap is used to store object of type `gnu.expr.ModuleMethodWithContext`, that is the runtime object in which closures are allocated.
+We can reach the same conclusions analysing the heap usage. Figure \ref{heap} shows which objects are more often allocated during the execution of `fib`. Almost 40% of the heap is used to store object of type `gnu.expr.ModuleMethodWithContext`, that is the runtime object in which closures are allocated. This is not unexpected, as the transformed code is fragmented in a set of closures. However, this suggest that a possible improvement for the technique can be obtained optimising closure allocation.
 
 ![Most allocated Java object during the execution of the `fib` benchmark \label{heap}](figures/heap.pdf)
 
-This is not unexpected, as the transformed code is fragmented in a set of closures. However, this suggest that a possible improvement for the technique can be obtained optimising closure allocation.
+![Transformed vs non-transformed code, values in Kbytes \label{mem-overhead-table} \label{heap}](figures/mem-overhead-table.pdf)
+
+![Transformed vs non-transformed code, memory usage comparison \label{heap}](figures/mem-overhead.png)
 
 ## Capturing performance
 I tested the new `call/cc` implementation on five continuation-intensive benchmarks. `fibc` is a variation of `fib` with continuations. The `loop2` benchmark corresponds to a non-local-exit scenario in which a tight loop repeatedly throws to the same continuation. The `ctak` benchmark is a continuation-intensive variation of the call-intensive `tak` benchmark. The ctak benchmark captures a continuation on every procedure call and throws a continuation on every return. I compared the modified version of Kawa with SISC, the only other JVM Scheme supporting `call/cc`, and other Scheme implementations with a JIT compiler targeting either native machine code or an internal VM.
 
 ![Capturing benchmark (interpreted code), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
 
-Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures \ref{compiled-tab} and \ref{compiled} compares the execution time of code compiled by five compilers, including the modified version of Kawa.
-
 ![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
+
+Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures \ref{compiled-tab} and \ref{compiled} compares the execution time of code compiled by five compilers, including the modified version of Kawa.
 
 ![Capturing benchmark (pre-compiled code), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
 
