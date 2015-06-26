@@ -1,8 +1,22 @@
 # Case studies
 
-## Debugger
+## Kawa debugger
+`call/cc` and first-class continuations allow to suspend the execution of a program, store its state, and resume it, even multiple times. This, in addition to the instrumentation performed to obtain it in Kawa, can be exploited to implement debugging features. I extended the technique described in Chapters 3-4 to implement a simple debugger.
 
-## Async and Await
+When the modified code runs, it stops at breakpoints and lets you step through the program and inspect variables. The following command are supported:
+
+command       | result
+--------------|------------------------
+s(tep)        | run for one step
+c(ontinue)    | run until the next breakpoint
+p(rint) [var] | print a variable
+q(uit)        | exit the program
+
+### Example
+
+### Implementation details
+
+## Asynchronous programming: Async and Await
 
 Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain.
 
@@ -10,10 +24,12 @@ We will see in this section how asynchronous programming features can be added t
 
 ### Coroutines
 
-Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed by obtained with few lines of code in scheme:
+Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed by obtained with few lines of code in scheme. The following code is a porting of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe]:
 
 ```scheme
-    ;;; queue code
+
+
+	;;; queue code
     (define (make-queue)
       (cons '() '()))
 
