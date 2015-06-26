@@ -4,9 +4,13 @@
 
 ## Async and Await
 
-Asynchronous programming is a programming paradigm that facilitates fast and responsive user interfaces. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain.
+Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain.
+
+We will see in this section how asynchronous programming features can be added to Scheme using coroutines and delimited continuations.
 
 ### Coroutines
+
+Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed by obtained with few lines of code in scheme:
 
 ```scheme
     ;;; queue code
