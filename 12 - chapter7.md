@@ -6,9 +6,9 @@ Carl Sagan, Encyclopedia Galactica
 \end{flushright}
 
 ## Transformation overhead
-We saw in the previous chapters how we can implement `call/cc` on a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.
+We saw in the previous chapters how we can implement `call/cc` in a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.
 
-I used a set of benchmark to analyse the behaviour of the running code in the case both transformed code and non-transformed code. All the benchmarks were executed on an Intel i5 dual-core processor with 4GB of RAM (i5-2410M , 2.30GHz).The operating system was Debian GNU/Linux. The table in Figure \ref{overhead-table} and the chart in Figure \ref{overhead} show the results.
+I used a set of benchmarks to analyse the behaviour of the running code in the case of both transformed code and non-transformed code. All the benchmarks were executed on an Intel i5 dual-core processor with 4GB of RAM (i5-2410M , 2.30GHz).The operating system was Debian GNU/Linux. The table in Figure \ref{overhead-table} and the chart in Figure \ref{overhead} show the results.
 
 ![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.pdf)
 
@@ -16,7 +16,7 @@ The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` imp
 
 ![Transformed vs non-transformed code, performance comparison \label{overhead}](figures/overhead.png)
 
-To understand from where this overhead comes from, I profiled the execution of the fib benchmark using HPROF, a profiling tool provided by the Java platform. Considering the cpu usage data (Figure \ref{cpu}), we can observe that approximately a 10% of the cpu time is spent allocating `Proceure` objects (`gnu.mapping.Procedure.<init>` and `gnu.expr.ModuleMethod.<init>`).
+To understand from where this overhead comes from, I profiled the execution of the fib benchmark using HPROF, a profiling tool provided by the Java platform. Considering the cpu usage data (Figure \ref{cpu}), we can observe that approximately 10% of the cpu time is spent allocating `Proceure` objects (`gnu.mapping.Procedure.<init>` and `gnu.expr.ModuleMethod.<init>`).
 
 ![Most called Java methods in the `fib` benchmark \label{cpu}](figures/cpu.pdf)
 
@@ -31,7 +31,9 @@ Almost 40% of the heap is used to store object of type `ModuleMethodWithContext`
 ![Transformed vs non-transformed code, memory usage comparison \label{heap}](figures/mem-overhead.png)
 
 ## `call/cc` performance
-I tested the new `call/cc` implementation on five continuation-intensive benchmarks. `fibc` is a variation of `fib` with continuations. The `loop2` benchmark corresponds to a non-local-exit scenario in which a tight loop repeatedly throws to the same continuation. The `ctak` benchmark is a continuation-intensive variation of the call-intensive `tak` benchmark. The ctak benchmark captures a continuation on every procedure call and throws a continuation on every return. I compared the modified version of Kawa with other Scheme implementations with an interpreter or JIT compiler targeting either native machine code or an internal VM:
+I tested the new `call/cc` implementation on five continuation-intensive benchmarks. `fibc` is a variation of `fib` with continuations. The `loop2` benchmark corresponds to a non-local-exit scenario in which a tight loop repeatedly throws to the same continuation. The `ctak` benchmark is a continuation-intensive variation of the call-intensive `tak` benchmark. The `ctak` benchmark captures a continuation on every procedure call and throws a continuation on every return. In addition to `fibc` `loop2` and `ctak`, already used in [@Clinger1999], I used a benchmark based on coroutines, and an other implementing a generator.
+
+I compared the modified version of Kawa with other Scheme implementations with an interpreter or JIT compiler targeting either native machine code or an internal VM:
 
 * Petite Chez Scheme is a sibling version of Chez Scheme, a proprietary Scheme implementation. Petite is a threaded interpreter and can be used free of charge.
 
