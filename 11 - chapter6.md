@@ -91,6 +91,8 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 ```
 
 ### Shift and Reset
+I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators [@Filinski1994].
+
 
 ```scheme
 	(define (escape f)
