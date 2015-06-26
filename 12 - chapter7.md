@@ -16,7 +16,7 @@ The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` imp
 
 ![Transformed vs non-transformed code, performance comparison \label{overhead}](figures/overhead.png)
 
-To understand from where this overhead comes from, I profiled the execution of the fib benchmark using HPROF, a profiling tool provided by the Java platform. Considering the cpu usage data (Figure \ref{cpu}), we can observe that approximately 10% of the cpu time is spent allocating `Proceure` objects (`gnu.mapping.Procedure.<init>` and `gnu.expr.ModuleMethod.<init>`).
+To understand from where this overhead comes from, I profiled the execution of the fib benchmark using HPROF, a profiling tool provided by the Java platform [@HPROF2015]. Considering the cpu usage data (Figure \ref{cpu}), we can observe that approximately 10% of the cpu time is spent allocating `Proceure` objects (`gnu.mapping.Procedure.<init>` and `gnu.expr.ModuleMethod.<init>`).
 
 ![Most called Java methods in the `fib` benchmark \label{cpu}](figures/cpu.pdf)
 
@@ -47,13 +47,13 @@ I compared the modified version of Kawa with other Scheme implementations with a
 
 * SISC is a Scheme interpreter written in Java, and running on the JVM. SISC is also the only other JVM Scheme supporting `call/cc`.
 
-![Capturing benchmark (interpreted code), 10 iterations, values in secons \label{interp-tab}](figures/interpreted-table.pdf)
+![Capturing benchmark (interpreted code), 10 iterations, values in seconds \label{interp-tab}](figures/interpreted-table.pdf)
 
 ![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
 
 Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures \ref{compiled-tab} and \ref{compiled} compares the execution time of code compiled by five compilers, including the modified version of Kawa.
 
-![Capturing benchmark (pre-compiled code), 10 iterations, values in secons \label{compiled-tab}](figures/compiled-table.pdf)
+![Capturing benchmark (pre-compiled code), 10 iterations, values in seconds \label{compiled-tab}](figures/compiled-table.pdf)
 
 ![Capturing benchmark (pre-compiled code), 10 iterations \label{compiled}](figures/compiled.png)
 

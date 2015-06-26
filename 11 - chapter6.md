@@ -2,18 +2,18 @@
 
 ## Debugger
 
-## Async-Await
+## Async and Await
 
-### coroutines
+### Coroutines
 
-### reset/shift
+### Shift and Reset
 
-### async with coroutines
+### Async with coroutines
 
-### async with threds
+### Async with threads
 
-## prompts
+## Prompts
 
-### call-with-continuation-prompt
+### `call-with-continuation-prompt`
 
-### call-with-continuation-barrier
+### `call-with-continuation-barrier`
