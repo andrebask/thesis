@@ -3,7 +3,7 @@
 ## Kawa debugger
 `call/cc` and first-class continuations allow to suspend the execution of a program, store its state, and resume it, even multiple times. This, in addition to the instrumentation performed to obtain it in Kawa, can be exploited to implement debugging features. I extended the technique described in Chapters 3-4 to implement a simple debugger.
 
-When the modified code runs, it stops at breakpoints and lets you step through the program and inspect variables. The following command are supported:
+When you enable the debugging mode, the compiler instruments each atomic expression with debugging calls, and generates code to store variable declarations in an internal symbol table. When the resulting code  runs, it stops at breakpoints and lets you step through the program and inspect variables. The following commands are supported:
 
 command       | result
 --------------|------------------------
