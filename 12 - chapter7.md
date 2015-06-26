@@ -77,6 +77,6 @@ We saw in Chapter 3 that we expect an increase in code size proportional to the 
 
 ![Code size comparison, values in bytes \label{codesize-tab}](figures/codesize-table.pdf)
 
-We can observe that the size of transformed code can be 10 times larger than the code compiled without first-class continuations enabled. Even if the code size increase is proportional to the number of fragments, the difference in size is significant. This indicates that would be better to limit the use of transformed code to modules that needs `call/cc` and use it in combination with non-transformed code.
+We can observe that the size of transformed code can be 10 times larger than the code compiled without first-class continuations enabled. Even if the code size increase is proportional to the number of fragments, the difference in size is significant. This indicates that would be better to limit the use of transformed code to modules that needs `call/cc`, and use `call/cc` enabled code in combination with non-transformed code.
 
 ![Size of compiled classes in bytes \label{codesize}](figures/codesize.png)
