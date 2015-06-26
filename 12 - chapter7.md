@@ -33,7 +33,7 @@ Almost 40% of the heap is used to store object of type `ModuleMethodWithContext`
 ## `call/cc` performance
 I tested the new `call/cc` implementation on five continuation-intensive benchmarks. `fibc` is a variation of `fib` with continuations. The `loop2` benchmark corresponds to a non-local-exit scenario in which a tight loop repeatedly throws to the same continuation. The `ctak` benchmark is a continuation-intensive variation of the call-intensive `tak` benchmark. The `ctak` benchmark captures a continuation on every procedure call and throws a continuation on every return. In addition to `fibc` `loop2` and `ctak`, already used in [@Clinger1999], I used a benchmark based on coroutines, and an other implementing a generator.
 
-I compared the modified version of Kawa with other Scheme implementations with an interpreter or JIT compiler targeting either native machine code or an internal VM:
+I compared the modified version of Kawa with other Scheme implementations with an interpreter or JIT compiler, targeting either native machine code or an internal VM:
 
 * Petite Chez Scheme is a sibling version of Chez Scheme, a proprietary Scheme implementation. Petite is a threaded interpreter and can be used free of charge.
 
@@ -57,10 +57,10 @@ Some of the Scheme implementations introduced above can pre-compile code to a by
 
 ![Capturing benchmark (pre-compiled code), 10 iterations \label{compiled}](figures/compiled.png)
 
-Looking at the benchmarks' outcome we can see that Kawa with first-class continuations (Kawa fcc), despite the overhead we measured in the previous section, performs slightly better then SISC. As expected, Kawa fcc performances are far from some JVM compilers, however, when compared with Guile and Racket they are within the same order of magnitude.
+Looking at the benchmarks' outcome we can see that Kawa with first-class continuations (Kawa fcc), despite the overhead we measured in the previous section, performs slightly better then SISC. As expected, Kawa fcc performances are far from the Scheme to C compilers, however, when compared with Guile and Racket they are within the same order of magnitude.
 
 ## `call/cc` memory usage
-I measured peak memory usage of the same five benchmarks introduced in the performance section, testing the same range of compilers. This time Kawa fcc performs similarly to SISC, except for the `fibc` benchmark. Kawa fcc also uses a similar amount of memory similar to racket in the `coroutines` `generators` and `ctak` benchmarks. Chez and Scheme to C compilers have performances unreachable for implementations using a VM, both in interpreted and compiled modes.
+I measured peak memory usage of the same five benchmarks introduced in the performance section, testing the same range of compilers. This time Kawa fcc performs similarly to SISC, except for the `fibc` benchmark. Kawa fcc also uses a similar amount of memory similar to racket in the `coroutines`, `generators` and `ctak` benchmarks. Chez and Scheme to C compilers have performances unreachable for implementations using a VM, both in interpreted and compiled modes.
 
 ![Peak memory usage (interpreted code), 10 iterations, values in Kbytes \label{interp-tab}](figures/mem-interpreted-table.pdf)
 
@@ -77,6 +77,6 @@ We saw in Chapter 3 that we expect an increase in code size proportional to the 
 
 ![Code size comparison, values in bytes \label{codesize-tab}](figures/codesize-table.pdf)
 
-We can observe that the size of transformed code can be 10 times larger than the code compiled without first-class continuations enabled. Even if the code size increase is proportional to the number of fragments, the difference in size is significant. This indicates that would be better to limit the use of transformed code in modules that needs `call/cc` and use it in combination with non-transformed code.
+We can observe that the size of transformed code can be 10 times larger than the code compiled without first-class continuations enabled. Even if the code size increase is proportional to the number of fragments, the difference in size is significant. This indicates that would be better to limit the use of transformed code to modules that needs `call/cc` and use it in combination with non-transformed code.
 
 ![Size of compiled classes in bytes \label{codesize}](figures/codesize.png)
