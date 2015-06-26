@@ -43,6 +43,16 @@ Some of the Scheme implementations introduced above can pre-compile code to a by
 
 Looking at the benchmarks' outcome we can see that Kawa with first-class continuations (Kawa fcc), despite the overhead we measured in the previous section, performs slightly better then SISC. As expected, Kawa fcc performances are far from some JVM compilers, however, when compared with Guile and Racket they are within the same order of magnitude.
 
+## Capturing memory usage
+
+![Capturing benchmark (interpreted code), 10 iterations, values in secons \label{interp-tab}](figures/mem-interpreted-table.pdf)
+
+![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/mem-interpreted.png)
+
+![Capturing benchmark (pre-compiled code), 10 iterations, values in secons \label{compiled-tab}](figures/mem-compiled-table.pdf)
+
+![Capturing benchmark (pre-compiled code), 10 iterations \label{compiled}](figures/mem-compiled.png)
+
 ## Code size
 We saw in Chapter 3 that we expect an increase in code size proportional to the number of code fragments, so we want to measure the actual difference in size between a regular class file and an instrumented one. Figure \ref{codesize-tab} shows a comparison of regular code and transformed code.
 
