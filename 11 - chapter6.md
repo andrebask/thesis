@@ -134,7 +134,7 @@ Consider the following example. We need to execute a time consuming function cal
 	      42)))
 ```
 
-Calling the long call with the async syntax it is possible to execute other code in a concurrent way. We can put `(yield)` call inside the loop to suspend the execution and resume the next coroutine in the queue. We do the same in the code to be executed ate the same time. The effect is that of running two tasks at the same time.
+Calling the long call with the `async` syntax it is possible to execute other code in a concurrent way. We can put `(yield)` call inside the loop to suspend the execution and resume the next coroutine in the queue. We do the same in the code to be executed ate the same time. The effect is that of running two tasks at the same time. The `await` keyword allows to wait for the result of the long call, which is bound to the specified variable (`x` in this example).
 
 ```scheme
 	(display "start async call")
@@ -155,7 +155,25 @@ Calling the long call with the async syntax it is possible to execute other code
 	    (newline)))
 ```
 
-The above code displays
+The above code displays:
+
+```
+	start async call
+	do other things in the meantime...
+	0
+	1
+	-1
+	2
+	-2
+	[...]
+	98
+	-98
+	99
+	-99
+
+	result -> 42
+
+```
 
 ### Async with threads
 
