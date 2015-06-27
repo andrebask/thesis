@@ -20,6 +20,19 @@ q(uit)        | exit the program
 
 Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain.
 
+```scheme
+	(define (async-call)
+	  ... long running operation
+		  that returns an int  ...)
+
+	(async async-call
+	  ... work independent to the
+		  int result here  ...
+	  (await x ; <- wait for the result
+		... here you can use ...
+		... the result ...))
+```
+
 We will see in this section how asynchronous programming features can be added to Scheme using coroutines and delimited continuations.
 
 ### Coroutines
