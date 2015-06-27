@@ -109,7 +109,7 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
       (syntax-rules (await)
 	    ((async call during-exp ...
 	       (await var after-exp ...))
-         (let ((var !undefined))
+         (let ((var #f))
 	        (reset
 	          (shift (lambda (k)
 				      (k)
@@ -155,7 +155,7 @@ Calling the long call with the `async` syntax it is possible to execute other co
 	    (newline)))
 ```
 
-The above code displays:
+The above code prints:
 
 ```
 	start async call
@@ -176,21 +176,15 @@ The above code displays:
 ```
 
 ### Async with threads
+Using threads instead of coroutine we can avoid adding `(yield)` calls in our code, maintaining the same syntax. Kawa provides a simple interface to create parallel threads: `(future expression)` creates a new thread that evaluates expression, while `(force thread)` waits for the thread’s expression to finish executing, and returns the result. Kawa threads are implemented using Java threads.
+
+Thus we can remove `(yield)` calls from our code and redefine the `async`/`await` syntax using Kawa threads
 
 ```scheme
-    (define (async-call)
-      (let loop ((x 1))
-        (if (< x 100)
-	    (begin
-	      (display x)
-	      (newline)
-	      (loop (+ x 1)))
-	    42)))
-
     (define-syntax async
       (syntax-rules (await)
         ((async call during-exp ... (await var after-exp ...))
-         (let ((var !undefined))
+         (let ((var #f))
 	        (reset
 	         (shift (lambda (k)
 		          (set! var (future (call))) ; <- start thread
@@ -198,26 +192,32 @@ The above code displays:
 	         during-exp ...)
 	        (set! var (force var)) ; <- wait for result
 	        after-exp ...))))
-
-    (display "start async call")
-    (newline)
-    (async async-call
-           (display "do other things in the meantime...")
-           (newline)
-           (let loop ((i 0))
-	     (when (< i 100)
-	       (begin
-	         (display (- i))
-	         (newline)
-	         (loop (+ i 1)))))
-      (await x
-	     (display "result -> ")
-	     (display x)
-	     (newline)))
 ```
 
-## Prompts
+Now the two tasks are run in parallel, and their output is not deterministic:
+
+```
+	start async call
+	do other things in the meantime...
+	0
+	-1
+	1
+	2
+    -2
+	[...]
+	98
+	99
+	-98
+	-99
+
+	result -> 42
+
+```
+
+## Prompts and barriers
 
 ### `call-with-continuation-prompt`
 
 ### `call-with-continuation-barrier`
+
+## Selective transformation
