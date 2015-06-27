@@ -24,32 +24,10 @@ We will see in this section how asynchronous programming features can be added t
 
 ### Coroutines
 
-Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed by obtained with few lines of code in scheme. The following code is a porting of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe]:
+Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed by obtained with few lines of code in scheme. The following code is a port of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe], where the code for managing a queue has been omitted for brevity:
 
 ```scheme
 
-
-	;;; queue code
-    (define (make-queue)
-      (cons '() '()))
-
-    (define (enqueue! queue obj)
-      (let ((lobj (list obj)))
-        (if (null? (car queue))
-	    (begin
-	      (set-car! queue lobj)
-	      (set-cdr! queue lobj))
-	    (begin
-	      (set-cdr! (cdr queue) lobj)
-	      (set-cdr! queue lobj)))
-        (car queue)))
-
-    (define (dequeue! queue)
-      (let ((obj (car (car queue))))
-        (set-car! queue (cdr (car queue)))
-        obj))
-
-    ;;; coroutines code
     (define process-queue (make-queue))
     (define sync-cont #f)
 
@@ -91,14 +69,13 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 ```
 
 ### Shift and Reset
-I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators [@Filinski1994].
-
+I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
 
 ```scheme
 	(define (escape f)
       (call/cc (lambda (k)
-	         (f (lambda x
-		      (apply k x))))))
+	             (f (lambda x
+		              (apply k x))))))
 
     (define mk #f)
 
@@ -106,16 +83,17 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 
     (define (%reset t)
       (escape (lambda (k)
-	        (let ((m mk))
-	          (set! mk (lambda (r)
-			     (set! mk m)
-			     (k r)))
-	          (abort (t))))))
+	            (let ((m mk))
+	              (set! mk (lambda (r)
+			                 (set! mk m)
+			                 (k r)))
+	              (abort (t))))))
 
     (define (shift h)
       (escape (lambda (k)
-	        (abort (h (lambda v
-			    (%reset (lambda () (apply k v)))))))))
+	            (abort (h (lambda v
+			                (%reset (lambda ()
+				                      (apply k v)))))))))
 
     (define-syntax reset (syntax-rules ()
         ((reset exp ...)
@@ -124,12 +102,29 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 ```
 
 ### Async with coroutines
+With the availability of coroutines and `reset`/`shift` we can implement an `async`/`await` expression in Scheme
 
 ```scheme
 	(require "control.scm")
     (require "coroutines.scm")
 
-    (define (async-call)
+    (define-syntax async
+      (syntax-rules (await)
+	    ((async call during-exp ...
+	       (await var after-exp ...))
+         (let ((var !undefined))
+	        (reset
+	          (shift (lambda (k)
+				      (k)
+		              (fork (lambda ()
+			                  (set! var (call))
+			                  (exit)))))
+	          (fork (lambda () during-exp ... (exit))))
+	        (sync)
+	        after-exp ...))))
+```
+```scheme
+    (define (long-call)
       (let loop ((x 1))
         (if (< x 10)
 	    (begin (yield)
@@ -138,36 +133,22 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 	           (loop (+ x 1)))
 	    42)))
 
-    (define-syntax async
-      (syntax-rules (await)
-        ((async call during-exp ... (await var after-exp ...))
-         (let ((var !undefined))
-	        (reset
-	         (shift (lambda (k)
-		          (k)
-		          (fork (lambda ()
-			          (set! var (call))
-			          (exit)))))
-	         (fork (lambda () during-exp ... (exit))))
-	        (sync)
-	        after-exp ...))))
-
-    (display "start async call")
+	(display "start async call")
     (newline)
-    (async async-call
+    (async long-call
            (display "do other things in the meantime...")
            (newline)
            (let loop ((x 0))
-	     (when (< x 10)
-	       (begin (yield)
-		      (display (- x))
-		      (newline)
-		      (loop (+ x 1)))))
+	         (when (< x 10)
+	           (begin (yield)
+		              (display (- x))
+		              (newline)
+		              (loop (+ x 1)))))
            (newline)
       (await x
-	     (display "result -> ")
-	     (display x)
-	     (newline)))
+	    (display "result -> ")
+	    (display x)
+	    (newline)))
 ```
 
 ### Async with threads
