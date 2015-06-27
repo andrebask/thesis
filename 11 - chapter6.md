@@ -102,12 +102,9 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 ```
 
 ### Async with coroutines
-With the availability of coroutines and `reset`/`shift` we can implement an `async`/`await` expression in Scheme
+With the availability of coroutines and `reset`/`shift` we can implement an `async`/`await` expression in Scheme with few lines of code:
 
 ```scheme
-	(require "control.scm")
-    (require "coroutines.scm")
-
     (define-syntax async
       (syntax-rules (await)
 	    ((async call during-exp ...
@@ -123,23 +120,30 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
 	        (sync)
 	        after-exp ...))))
 ```
+
+Consider the following example. We need to execute a time consuming function call, which can be a loop or a recursive function processing some data, but we would like to do something else in the meantime.
+
 ```scheme
     (define (long-call)
       (let loop ((x 1))
-        (if (< x 10)
-	    (begin (yield)
-	           (display x)
-	           (newline)
-	           (loop (+ x 1)))
-	    42)))
+        (if (< x 100)
+	      (begin (yield)
+	             (display x)
+	             (newline)
+	             (loop (+ x 1)))
+	      42)))
+```
 
+Calling the long call with the async syntax it is possible to execute other code in a concurrent way. We can put `(yield)` call inside the loop to suspend the execution and resume the next coroutine in the queue. We do the same in the code to be executed ate the same time. The effect is that of running two tasks at the same time.
+
+```scheme
 	(display "start async call")
     (newline)
     (async long-call
            (display "do other things in the meantime...")
            (newline)
            (let loop ((x 0))
-	         (when (< x 10)
+	         (when (< x 100)
 	           (begin (yield)
 		              (display (- x))
 		              (newline)
@@ -150,6 +154,8 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
 	    (display x)
 	    (newline)))
 ```
+
+The above code displays
 
 ### Async with threads
 
