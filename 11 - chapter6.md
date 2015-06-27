@@ -113,11 +113,11 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
 	        (reset
 	          (shift (lambda (k)
 				      (k)
-		              (fork (lambda ()
+		              (fork (lambda ()   ; <- start call coroutine
 			                  (set! var (call))
 			                  (exit)))))
 	          (fork (lambda () during-exp ... (exit))))
-	        (sync)
+	        (sync)           ; <- wait until all coroutines finish
 	        after-exp ...))))
 ```
 
@@ -178,9 +178,6 @@ The above code displays:
 ### Async with threads
 
 ```scheme
-    (require "control.scm")
-    (require "coroutines.scm")
-
     (define (async-call)
       (let loop ((x 1))
         (if (< x 100)
@@ -196,10 +193,10 @@ The above code displays:
          (let ((var !undefined))
 	        (reset
 	         (shift (lambda (k)
-		          (set! var (future (call)))
+		          (set! var (future (call))) ; <- start thread
 		          (k)))
 	         during-exp ...)
-	        (set! var (force var))
+	        (set! var (force var)) ; <- wait for result
 	        after-exp ...))))
 
     (display "start async call")
