@@ -642,7 +642,14 @@ The transformation and the support code described in this chapter is not only su
 
 ### Prompts and barriers
 
+A *prompt* is a special kind of continuation frame that is annotated with a specific tag. Some operations allow to save continuation frames from the capture position out to the nearest enclosing prompt; such a continuation is sometimes called a delimited continuation [@EvaluationRacket2015].
+
+A *continuation barrier* is another kind of continuation frame that prohibits certain replacements of the current continuation with another. A continuation can be replaced by another only when the replacement does not introduce any continuation barriers. A continuation barrier thus prevents to jump into a continuation that is protected by a barrier [@EvaluationRacket2015].
+
 #### `call-with-continuation-prompt`
+I implemented a simple version of the `call-with-continuation-prompt` procedure. This function installs a prompt, and then it evaluates a given thunk under the prompt. During the dynamic extent of the call to thunk, if a user calls `call/cc`, the stack will be unwind until the prompt. Thus `call/cc` will capture a delimited continuation, because it is not the whole continuation of the program; rather, just the computation initiated by the call to `call-with-continuation-prompt`.
+
+This procedure is semantically equivalent to the `TopLevelHandler` previously described as part of the Kawa `call/cc` implementation, and can be expressed with a simple macro:
 
 #### `call-with-continuation-barrier`
 
