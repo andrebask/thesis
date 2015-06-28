@@ -76,6 +76,31 @@ The following listing shows a session of the debugger. In this case the user pri
 ```
 
 ### Implementation details
+The debugger works adding suspension instruction between each atomic expression. After A-normalisation the code is already transformed in a form suitable for instrumentation. During the fragmentation and instrumentation pass, needed by `call/cc`, the syntax tree visitor adds the debug instructions. When the execution reaches a breakpoint call the program  is suspended and the user can insert his commands. The breakpoint call also enables the step mode. Suspension instruction between atomic expressions are disabled during the normal execution, but they are activated when the user gives the `step` command. When the step mode is on, the program stops at each atomic instruction running a simple REPL. When the user gives the `continue` command, the step mode is disabled and the programs can run until the next breakpoint call.
+
+```scheme
+	(define (suspend line sourceLine)
+	  (when dbg:stepMode
+	    (begin
+	      (dbg:printInfo line sourceLine (current-output-port))
+	      (let loop ()
+		(let* ((in (read-line))
+		       (cmds ((in:toString):split " "))
+		       (cmd (string->symbol (cmds 0))))
+		  (case cmd
+		    ((c continue) (dbg:disableStepMode))
+		    ((p print)
+		     (if (> cmds:length 1)
+				   (begin
+				     (print (string->symbol (cmds 1)))
+				     (loop))))
+		    ((s step) #!void)
+		    ((q quit exit) (exit))
+		    (else (display (string-append "unknown command " (cmds 0)))
+			  (newline)
+			  (loop))))))))
+``
+
 
 
 ## Asynchronous programming: Async and Await
