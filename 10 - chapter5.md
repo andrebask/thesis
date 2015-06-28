@@ -649,7 +649,62 @@ A *continuation barrier* is another kind of continuation frame that prohibits ce
 #### `call-with-continuation-prompt`
 I implemented a simple version of the `call-with-continuation-prompt` procedure. This function installs a prompt, and then it evaluates a given thunk under the prompt. During the dynamic extent of the call to thunk, if a user calls `call/cc`, the stack will be unwind until the prompt. Thus `call/cc` will capture a delimited continuation, because it is not the whole continuation of the program; rather, just the computation initiated by the call to `call-with-continuation-prompt`.
 
-This procedure is semantically equivalent to the `TopLevelHandler` previously described as part of the Kawa `call/cc` implementation, and can be expressed with a simple macro:
+As an example, consider this simple expression:
+
+```scheme
+	(define c #f)
+
+	(* 2
+	 (+ 3 4
+		(call/cc
+		 (lambda (k)
+		   (set! c k)
+		   0)))) ; => 14
+```
+
+This code is straightforward, it captures a continuation and stores in to the global binding `c`. The saved continuation looks like this:
+
+```scheme
+	(* 2 (+ 3 4 _))
+```
+
+We can apply the continuation as usual:
+
+```scheme
+	(c 3) ; => 20
+```
+
+To capture part of the continuation we can use a prompt. For instance, if we want capture only `(+ 3 4 _)`:
+
+```scheme
+	(* 2
+	  (call-with-continuation-prompt
+	    (lambda ()
+	      (+ 3 4
+		    (call/cc
+		      (lambda (k)
+		        (set! c k)
+		        0)))))) ; => 14
+```
+
+```scheme
+	(c 3) ; => 10
+```
+
+The `call-with-continuation-prompt` procedure is semantically equivalent to the `TopLevelHandler` previously described as part of the Kawa `call/cc` implementation, and can be expressed with a simple macro:
+
+```scheme
+	(define-namespace <TLH>
+		<gnu.expr.continuations.TopLevelHandler>)
+
+	(define (%tlh f)
+	  (<TLH>:runInTopLevelHandler f))
+
+	(define-syntax call-with-continuation-prompt
+	  (syntax-rules ()
+		((_ f)
+		 (%tlh (lambda (x) (f))))))
+```
 
 #### `call-with-continuation-barrier`
 
