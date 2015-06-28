@@ -728,7 +728,25 @@ Another procedure that we can provide is `call-with-continuation-barrier`. It ap
 	         (throw cex))))))
 ```
 
-The macro replaces the call to `call-with-continuation-barrier` with an exception handler that intercepts `ContinuationException`s.
+The macro replaces the call to `call-with-continuation-barrier` with an exception handler that intercepts `ContinuationException`s. The exception handler extends the continuation with a new frame that when invoked throws an exception. Than  re-throws the original `ContinuationException` so that the original `call/cc` call is not affected.
+
+If we try the previous example using this time a continuation barrier, we get an error:
+
+```scheme
+	(* 2
+	  (call-with-continuation-barrier
+	    (lambda ()
+	      (+ 3 4
+		    (call/cc
+		      (lambda (k)
+		        (set! c k)
+		        0)))))) ; => 14
+```
+
+```scheme
+	(c 3) ; => java.lang.Exception: attempt to cross a
+          ;                          continuation barrier
+```
 
 ### `shift` and `reset`
 I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
@@ -757,14 +775,38 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 			                (%reset (lambda ()
 				                      (apply k v)))))))))
 
-    (define-syntax reset (syntax-rules ()
+	(define-syntax reset
+	  (syntax-rules ()
         ((reset exp ...)
          (%reset (lambda () exp ...)))))
 
 ```
 
-### Native `shift` and `reset`
+#### Native `shift` and `reset`
 Although we can implement delimited continuations using `call/cc`, we can avoid unnecessary overhead implementing `shift` and `reset` in Java, modifying the existing `call/cc` implementation.
+
+The `reset` function is semantically similar to the `TopLevelHandler`, while the `shift` can be seen as a kind of `call/cc`. The main difference is that the continuation captured by the `shift` has a limited extent and behaves as an actual function, returning a value. So invoking the continuation inside the `shift` call does not have the effect of escaping the procedure.
+
+```java
+public class Shift extends Procedure1 {
+
+	[...]
+
+    public static Object shift(final Procedure receiver)
+        throws ContinuationException {
+        try {
+            // begin unwind the stack
+            throw new DelimitedContinuationException();
+        } catch (DelimitedContinuationException sce) {
+            sce.extend(new ContinuationFrame(receiver));
+            throw sce;
+        }
+    }
+}
+```
+
+```java
+```
 
 ## Higher order functions
 To support the capture of continuations inside higher order functions, it is possible to add them, or at least the most common ones, in a module that is transformed for `call/cc` support end included in the compiler. I defined a Scheme version of `map` and `for-each`, which I added in the standard library of Kawa to experiment the applicability of this technique. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions.
