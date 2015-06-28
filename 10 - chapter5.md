@@ -706,6 +706,8 @@ The `call-with-continuation-prompt` procedure is semantically equivalent to the 
 		 (%tlh (lambda (x) (f))))))
 ```
 
+Other Scheme implementations, such as Racket or Guile, provides an extended version of this procedure that allows to set prompt tags and handlers. That extended version could be in theory implemented in Kawa modifying `TopLevelHandler` to support custom handlers.
+
 #### `call-with-continuation-barrier`
 
 ### `shift` and `reset`
