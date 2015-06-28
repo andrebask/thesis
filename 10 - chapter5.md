@@ -807,7 +807,7 @@ public class Shift extends Procedure1 {
 
 The `Shift` class works like the `CallCC` one, bu it throws a different type of exception, i.e. a `DelimitedContinuationException`, that does not interfere with the `call/cc` calls.
 
-The `Reset` extends `TopLevelHandler` to implement its functionality. In this case there is no need to run the `try`/`catch` block in a loop, because of the different nature of delimited continuations. As they can be considered regular functions this handler does not need to catch an `ExitException`, it only need to manage the DelimitedContinuationException thrown by the `shift` call.
+The `Reset` extends `TopLevelHandler` to implement its functionality. In this case there is no need to run the `try`/`catch` block in a loop, because of the different nature of delimited continuations. As they can be considered regular functions this handler does not need to catch an `ExitException`, it only need to manage the `DelimitedContinuationException` thrown by the `shift` call.
 
 ```java
 public class Reset extends TopLevelHandler {
@@ -825,6 +825,8 @@ public class Reset extends TopLevelHandler {
     }
 }
 ```
+
+The `DelimitedContinuation` objects is different from a `Continuation` in that it does not thrown an exception, but it returns a value. Moreover, the apply method reloads the frames inside a `reset` to handle possible future calls of `shift` inside the original outer `reset`.
 
 ```java
 public class DelimitedContinuation extends Continuation {
