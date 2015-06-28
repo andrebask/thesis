@@ -636,7 +636,9 @@ annotatedExp.try_clause = visit(annotatedExp.try_clause, null);
 return annotatedExp;
 ```
 
-## Delimited Continuations
+## Other control operators: delimited continuations
+
+The transformation and the support code described in this chapter is not only suitable to implement `call/cc`, but can also be employed to implement other control operators.
 
 ### Prompts and barriers
 
@@ -644,7 +646,7 @@ return annotatedExp;
 
 #### `call-with-continuation-barrier`
 
-### Shift and Reset
+### `shift` and `reset`
 I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
 
 ```scheme
@@ -677,7 +679,10 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 
 ```
 
+### Native `shift` and `reset`
+Although we can implement delimited continuations using `call/cc`, we can avoid unnecessary overhead implementing `shift` and `reset` in Java, modifying the existing `call/cc` implementation.
+
 ## Higher order functions
-To make possible the capture of continuations inside higher order functions like `map` and `for-each`, I defined a Scheme version of the two functions. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions. Thus the general idea is to add all the similar functions (e.g. `vector-map`, `vector-for-each etc`, etc..), or at least the most common ones, in that module.
+To support the capture of continuations inside higher order functions, it is possible to add them, or at least the most common ones, in a module that is transformed for `call/cc` support end included in the compiler. I defined a Scheme version of `map` and `for-each`, which I added in the standard library of Kawa to experiment the applicability of this technique. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions.
 
 ## Selective transformation
