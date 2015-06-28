@@ -805,10 +805,70 @@ public class Shift extends Procedure1 {
 }
 ```
 
+The `Shift` class works like the `CallCC` one, bu it throws a different type of exception, i.e. a `DelimitedContinuationException`, that does not interfere with the `call/cc` calls.
+
+The `Reset` extends `TopLevelHandler` to implement its functionality. In this case there is no need to run the `try`/`catch` block in a loop, because of the different nature of delimited continuations. As they can be considered regular functions this handler does not need to catch an `ExitException`, it only need to manage the DelimitedContinuationException thrown by the `shift` call.
+
 ```java
+public class Reset extends TopLevelHandler {
+
+	[...]
+
+    public static Object runInTopLevelHandler(Procedure initialFrame)
+        throws Throwable {
+        try {
+            return initialFrame.apply1(null);
+        } catch (DelimitedContinuationException dce) {
+            final Continuation k = dce.toContinuation();
+            return k.resume(k);
+        }
+    }
+}
+```
+
+```java
+public class DelimitedContinuation extends Continuation {
+
+	[...]
+
+	public Object apply1(final Object val) throws Throwable {
+	    Procedure1 t = new Procedure1() {
+
+	        @Override
+	        public Object apply1(Object arg1) throws Throwable {
+	            return reloadFrames(0, frames.size() - 2, val);
+	        }
+	    };
+
+	    return Reset.runInTopLevelHandler(t);
+	}
 ```
 
 ## Higher order functions
 To support the capture of continuations inside higher order functions, it is possible to add them, or at least the most common ones, in a module that is transformed for `call/cc` support end included in the compiler. I defined a Scheme version of `map` and `for-each`, which I added in the standard library of Kawa to experiment the applicability of this technique. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions.
 
 ## Selective transformation
+
+```scheme
+	(define-namespace <TLH> <gnu.expr.continuations.TopLevelHandler>)
+	(define-namespace <ANF> <gnu.expr.ANormalize>)
+	(define-namespace <FAI> <gnu.expr.FragmentAndInstrument>)
+	(define-namespace <COMP> <gnu.expr.Compilation>)
+
+	(define (%tlh f)
+	  (<TLH>:runInTopLevelHandler f))
+
+	(define-syntax call-with-continuation-prompt
+	  (syntax-rules ()
+		((_ f)
+		 (%tlh (call/cc-rewrite (lambda (x) (f)))))))
+
+	(define-rewrite-syntax call/cc-rewrite
+	  (lambda (x)
+		(syntax-case x ()
+		  ((_ sexp)
+		   (let ((exp (syntax->expression (syntax sexp))))
+			 (<ANF>:aNormalize exp (<COMP>:getCurrent))
+			 (<FAI>:fragmentCode exp (<COMP>:getCurrent))
+			 exp)))))
+```
