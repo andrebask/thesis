@@ -3,7 +3,7 @@
 ## Kawa debugger
 Instrumentation allows to suspend the execution of a program, store its state, and resume it, even multiple times. Thus, we can exploit the instrumentation performed to obtain first-class continuations in Kawa to implement debugging features. I extended the technique described in Chapters 3-4 to implement a simple debugger.
 
-When you enable the debugging mode, the compiler instruments each atomic expression with debugging calls, and generates code to store variable declarations in an internal symbol table. When the resulting code runs, it stops at breakpoints and lets you step through the program and inspect variables.
+When you enable the debugging mode, the compiler instruments each atomic expression with debugging calls, and generates code to store variable bindings in an internal table. When the resulting code runs, it stops at breakpoints and lets you step through the program and inspect variables.
 
 As an example, suppose we need to debug this snippet of code:
 
@@ -76,32 +76,70 @@ The following listing shows a session of the debugger. In this case the user pri
 ```
 
 ### Implementation details
-The debugger works adding suspension instruction between each atomic expression. After A-normalisation the code is already transformed in a form suitable for instrumentation. During the fragmentation and instrumentation pass, needed by `call/cc`, the syntax tree visitor adds the debug instructions. When the execution reaches a breakpoint call the program  is suspended and the user can insert his commands. The breakpoint call also enables the step mode. Suspension instruction between atomic expressions are disabled during the normal execution, but they are activated when the user gives the `step` command. When the step mode is on, the program stops at each atomic instruction running a simple REPL. When the user gives the `continue` command, the step mode is disabled and the programs can run until the next breakpoint call.
+The debugger works adding suspension instruction between each atomic expression. After A-normalisation the code is already transformed in a form suitable for instrumentation. During the fragmentation and instrumentation pass, needed by `call/cc`, the syntax tree visitor adds the debug instructions. When the execution reaches a breakpoint call the program  is suspended and the user can insert his commands.
+
+The breakpoint call also enables the step mode. Suspension instructions between atomic expressions are disabled during the normal execution, but they are activated when the user gives the `step` command. When the step mode is on, the program stops at each atomic instruction running a simple REPL. When the user gives the `continue` command, the step mode is disabled and the programs can run until the next breakpoint call.
 
 ```scheme
+	(define (breakpoint . args)
+	  (dbg:enableStepMode)
+	  (suspend (car args) (cadr args)))
+
 	(define (suspend line sourceLine)
 	  (when dbg:stepMode
 	    (begin
 	      (dbg:printInfo line sourceLine (current-output-port))
 	      (let loop ()
-		(let* ((in (read-line))
-		       (cmds ((in:toString):split " "))
-		       (cmd (string->symbol (cmds 0))))
-		  (case cmd
-		    ((c continue) (dbg:disableStepMode))
-		    ((p print)
-		     (if (> cmds:length 1)
+		    (let* ((in (read-line))
+		           (cmds ((in:toString):split " "))
+		           (cmd (string->symbol (cmds 0))))
+		      (case cmd
+		        ((c continue) (dbg:disableStepMode))
+		        ((p print)
+		         (if (> cmds:length 1)
 				   (begin
 				     (print (string->symbol (cmds 1)))
 				     (loop))))
-		    ((s step) #!void)
-		    ((q quit exit) (exit))
-		    (else (display (string-append "unknown command " (cmds 0)))
-			  (newline)
-			  (loop))))))))
-``
+		        ((s step) (void))
+		        ((q quit exit) (exit))
+		        (else (display (string-append
+				                   "unknown command "
+			                       (cmds 0)))
+			          (newline)
+			          (loop))))))))
+```
 
+Regarding the debugging instrumentation, the main part is performed in the `visitLetExp` method. I generated a new suspend expression, besides an instruction to add the value of the bind variable to the debugger table at runtime. For each let-bind expression. when the user calls the `print` command, he gets the last value of that variable from the table.
 
+```java
+protected Expression visitLetExp(LetExp exp, Void ignored) {
+    Declaration letDecl = exp.firstDecl();
+    Expression continueValue = letDecl.getInitValue();
+    String symbol = letDecl.getName();
+
+    if (Compilation.enableDebugger) {
+        int lnum = continueValue.getLineNumber();
+        String codeLine = continueValue.print();;
+
+		// suspension instruction
+        ApplyExp suspend = new ApplyExp(applyRef,
+                                       suspendProc,
+                                       new QuoteExp(lnum),
+                                       new QuoteExp(codeLine));
+
+        // add binding to the debugger binding table
+        ApplyExp addVar = new ApplyExp(applyRef,
+                                       addBindingProc,
+                                       QuoteExp.getInstance(symbol),
+                                       new ReferenceExp(letDecl));
+
+    	exp.body = new BeginExp(new Expression[]{addVar,
+	                                             suspend,
+	                                             exp.body});
+    }
+
+	...
+```
 
 ## Asynchronous programming: Async and Await
 
