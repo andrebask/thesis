@@ -44,6 +44,7 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 		(sync-cont))
 	((dequeue! process-queue))))
 
+
 (define (exit)
   (dispatch))
 
@@ -59,29 +60,33 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 ```scheme
 	(define (yield)
 	  (call/cc
-	   (lambda (k)
+	   (lambda (parent)
 		 (coroutine (lambda ()
-		              (k #f)))
+		              (parent #f)))
 		 (dispatch))))
 
 	(define (thread-activator)
 	  (call/cc
-	   (lambda (k)
+	   (lambda (parent)
 		 (let ((f (call/cc
-		            (lambda (fc)
-			          (k fc)))))
+		           (lambda (fc)
+			        (parent fc)))))
 		   (f)
 		   (exit)))))
 
 	(define (fork f)
 	  (call/cc
-	   (lambda (k)
+	   (lambda (parent)
 		 (coroutine (lambda ()
-		              (k #f)))
+		              (parent #f)))
 		 ((thread-activator) f))))
 ```
 
 \columnsend
+
+The function `coroutine` establishes a context for running the passed thunk; the `fork` function starts the execution of a new coroutine. The implementation uses an internal prompt to establish the scope of the coroutine. The state of a running coroutine is saved as a function in the queue when doing a `yield`, than the next coroutine in the queue is started by `dispatch`. To end a process, we can call the `exit` function, which calls `dispatch` without saving the current process in the queue. `sync` allows to wait until all the processes are finished.
+
+Control operators like `call/cc` make the implementation of coroutines simpler because one can separate the management of queues from the processes.
 
 ### Async with coroutines
 With the availability of coroutines and `reset`/`shift` we can implement an `async`/`await` expression in Scheme with few lines of code:
@@ -95,11 +100,11 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
 	        (reset
 	          (shift (lambda (k)
 				      (k)
-		              (fork (lambda ()   ; <- start call coroutine
+		              (fork (lambda () ; <- start call coroutine
 			                  (set! var (call))
 			                  (exit)))))
 	          (fork (lambda () during-exp ... (exit))))
-	        (sync)           ; <- wait until all coroutines finish
+	        (sync) ; <- wait until all coroutines finish
 	        after-exp ...))))
 ```
 
@@ -117,6 +122,8 @@ Consider the following example. We need to execute a time consuming function cal
 ```
 
 Calling the long call with the `async` syntax it is possible to execute other code in a concurrent way. We can put `(yield)` call inside the loop to suspend the execution and resume the next coroutine in the queue. We do the same in the code to be executed ate the same time. The effect is that of running two tasks at the same time. The `await` keyword allows to wait for the result of the long call, which is bound to the specified variable (`x` in this example).
+
+The logic is implemented using coroutines, the two expressions to be run concurrently are launched using a `fork`, while the result is awaited using `sync`. `reset`/`shift` allows us to delimit the extent of the continuation to be captured, and to change the order of the executed code.
 
 ```scheme
 	(display "start async call")
@@ -160,7 +167,7 @@ The above code prints:
 ### Async with threads
 Using threads instead of coroutine we can avoid adding `(yield)` calls in our code, maintaining the same syntax. Kawa provides a simple interface to create parallel threads: `(future expression)` creates a new thread that evaluates expression, while `(force thread)` waits for the thread’s expression to finish executing, and returns the result. Kawa threads are implemented using Java threads.
 
-Thus we can remove `(yield)` calls from our code and redefine the `async`/`await` syntax using Kawa threads
+Thus we can remove `(yield)` calls from our code and redefine the `async`/`await` syntax to use Kawa threads:
 
 ```scheme
     (define-syntax async
