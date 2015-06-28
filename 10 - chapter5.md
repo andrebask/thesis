@@ -636,5 +636,48 @@ annotatedExp.try_clause = visit(annotatedExp.try_clause, null);
 return annotatedExp;
 ```
 
+## Delimited Continuations
+
+### Prompts and barriers
+
+#### `call-with-continuation-prompt`
+
+#### `call-with-continuation-barrier`
+
+### Shift and Reset
+I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
+
+```scheme
+	(define (escape f)
+      (call/cc (lambda (k)
+	             (f (lambda x
+		              (apply k x))))))
+
+    (define mk #f)
+
+    (define (abort x) (mk x))
+
+    (define (%reset t)
+      (escape (lambda (k)
+	            (let ((m mk))
+	              (set! mk (lambda (r)
+			                 (set! mk m)
+			                 (k r)))
+	              (abort (t))))))
+
+    (define (shift h)
+      (escape (lambda (k)
+	            (abort (h (lambda v
+			                (%reset (lambda ()
+				                      (apply k v)))))))))
+
+    (define-syntax reset (syntax-rules ()
+        ((reset exp ...)
+         (%reset (lambda () exp ...)))))
+
+```
+
 ## Higher order functions
 To make possible the capture of continuations inside higher order functions like `map` and `for-each`, I defined a Scheme version of the two functions. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions. Thus the general idea is to add all the similar functions (e.g. `vector-map`, `vector-for-each etc`, etc..), or at least the most common ones, in that module.
+
+## Selective transformation

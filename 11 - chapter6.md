@@ -1,9 +1,36 @@
 # Case studies
 
 ## Kawa debugger
-`call/cc` and first-class continuations allow to suspend the execution of a program, store its state, and resume it, even multiple times. This, in addition to the instrumentation performed to obtain it in Kawa, can be exploited to implement debugging features. I extended the technique described in Chapters 3-4 to implement a simple debugger.
+Instrumentation allows to suspend the execution of a program, store its state, and resume it, even multiple times. Thus, we can exploit the instrumentation performed to obtain first-class continuations in Kawa to implement debugging features. I extended the technique described in Chapters 3-4 to implement a simple debugger.
 
-When you enable the debugging mode, the compiler instruments each atomic expression with debugging calls, and generates code to store variable declarations in an internal symbol table. When the resulting code  runs, it stops at breakpoints and lets you step through the program and inspect variables. The following commands are supported:
+When you enable the debugging mode, the compiler instruments each atomic expression with debugging calls, and generates code to store variable declarations in an internal symbol table. When the resulting code runs, it stops at breakpoints and lets you step through the program and inspect variables.
+
+As an example, suppose we need to debug this snippet of code:
+
+```scheme
+	1 (define (find-first pred lst)
+	2   (call/cc
+	3     (lambda (return)
+	4       (for-each (lambda (x)
+	5 		            (if (pred x)
+	6 		              (return x)))
+	7 	                  lst)
+	8     #f)))
+    9
+   10 (get-first negative? '(1 2 3 4 -5 6 7 8 9)) ; => -5
+```
+
+We can add a pausing instruction simply calling the `breakpoint` function, as you can see below:
+
+```scheme
+	...
+		(for-each (lambda (x)
+                     (breakpoint) ; <--
+			         (if (pred x)
+	...
+```
+
+Once the program is run the execution stops at the breakpoint line, opening a terminal that accepts some predefined commands. The following commands are supported:
 
 command       | result
 --------------|------------------------
@@ -12,9 +39,44 @@ c(ontinue)    | run until the next breakpoint
 p(rint) [var] | print a variable
 q(uit)        | exit the program
 
-### Example
+The following listing shows a session of the debugger. In this case the user prints some variable values, then steps forward two times, executing one atomic expression at each step, then continues to stop at the breakpoint at each cycle of the `for-each` until the function returns:
+
+```scheme
+	### suspended at line 5 ###
+	> print x
+	| x: 1
+	> print return
+	| return: #<continuation>
+	> step
+	### suspended at line 6 ###
+	### after expression
+	(Apply line:6:8 (Ref/24/Declaration[applyToArgs/2])
+	  (Ref/23/Declaration[pred/101])
+	  (Ref/25/Declaration[x/135]))
+	###
+	> step
+	### suspended at line 5 ###
+	> print x
+	| x: 2
+	> continue
+	### suspended at line 5 ###
+	> continue
+	### suspended at line 5 ###
+	> print x
+	| x: 4
+	> print #all
+	| get-first: #<procedure get-first>
+	| pred: #<procedure negative?>
+	| x: 4
+	| lst: (1 2 3 4 -5 6 7 8 9)
+	| return: #<continuation>
+	### suspended at line 5 ###
+	> continue
+	-5
+```
 
 ### Implementation details
+
 
 ## Asynchronous programming: Async and Await
 
@@ -79,39 +141,6 @@ Coroutines are functions that can be paused and later resumed. They are necessar
        (lambda (k)
          (coroutine (lambda () (k #f)))
          ((thread-activator) f))))
-```
-
-### Shift and Reset
-I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
-
-```scheme
-	(define (escape f)
-      (call/cc (lambda (k)
-	             (f (lambda x
-		              (apply k x))))))
-
-    (define mk #f)
-
-    (define (abort x) (mk x))
-
-    (define (%reset t)
-      (escape (lambda (k)
-	            (let ((m mk))
-	              (set! mk (lambda (r)
-			                 (set! mk m)
-			                 (k r)))
-	              (abort (t))))))
-
-    (define (shift h)
-      (escape (lambda (k)
-	            (abort (h (lambda v
-			                (%reset (lambda ()
-				                      (apply k v)))))))))
-
-    (define-syntax reset (syntax-rules ()
-        ((reset exp ...)
-         (%reset (lambda () exp ...)))))
-
 ```
 
 ### Async with coroutines
@@ -226,11 +255,3 @@ Now the two tasks are run in parallel, and their output is not deterministic:
 	result -> 42
 
 ```
-
-## Prompts and barriers
-
-### `call-with-continuation-prompt`
-
-### `call-with-continuation-barrier`
-
-## Selective transformation
