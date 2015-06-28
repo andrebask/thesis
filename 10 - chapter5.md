@@ -846,10 +846,10 @@ public class DelimitedContinuation extends Continuation {
 	}
 ```
 
-## Higher order functions
-To support the capture of continuations inside higher order functions, it is possible to add them, or at least the most common ones, in a module that is transformed for `call/cc` support end included in the compiler. I defined a Scheme version of `map` and `for-each`, which I added in the standard library of Kawa to experiment the applicability of this technique. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions.
+### Selective transformation
+Using delimited continuations instead of un-delimited ones, gives us the chance to avoid transforming the whole source code. For instance, if we use `reset`/`shift` in a small portion of a program, we can transform only that portion an leave the rest untouched.
 
-## Selective transformation
+The following code is a basic implementation of this idea. The two macros transform the code starting from a `call-with-continuation-prompt` call. The first macro marks the code to be processed by a successive pass, the `call/cc-rewrite` macro operates on the syntax tree performing the A-normalization pass and the instrumentation pass on the expression. This gives us continuation-enabled code enclosed in the `call-with-continuation-prompt`.
 
 ```scheme
 	(define-namespace <TLH> <gnu.expr.continuations.TopLevelHandler>)
@@ -874,3 +874,8 @@ To support the capture of continuations inside higher order functions, it is pos
 			 (<FAI>:fragmentCode exp (<COMP>:getCurrent))
 			 exp)))))
 ```
+
+This concept can be further developed, to support nested prompts, and to achieve something similar to what Rompf et al. did in [@Rompf2009] for the Scala compiler.
+
+## Higher order functions
+To support the capture of continuations inside higher order functions, it is possible to add them, or at least the most common ones, in a module that is transformed for `call/cc` support end included in the compiler. I defined a Scheme version of `map` and `for-each`, which I added in the standard library of Kawa to experiment the applicability of this technique. The module in which those functions are implemented is compiled with the continuations transformation enabled (this can be done using `(module-compile-options full-continuations: #t)`). Moreover, when a Scheme source file is compiled with the full `call/cc` enabled, the compiler replaces the higher order functions with the instrumented version. This allows to capture continuations inside those functions.
