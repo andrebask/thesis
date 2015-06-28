@@ -718,21 +718,17 @@ Another procedure that we can provide is `call-with-continuation-barrier`. It ap
 	(define-syntax call-with-continuation-barrier
 	  (syntax-rules ()
 		((_ f)
-		 (let ((ex #f))
-		   (try-catch (f)
-		     (cex <CH>:ContinuationException
-			   (set! ex cex)))
-		   (when ex
-		     (begin
-		       (ex:extend (<CH>:ContinuationFrame
-				            (lambda (x)
-				              (throw (java.lang.Exception
-		                               "attempt to cross a
-		                                continuation barrier")))))
-		   (throw ex)))))))
+		 (try-catch (f)
+		   (cex <CH>:ContinuationException
+			 (cex:extend (<CH>:ContinuationFrame
+				             (lambda (x)
+					           (throw (java.lang.Exception
+						                "attempt to cross a
+		                                 continuation barrier")))))
+	         (throw cex))))))
 ```
 
-The macro replaces the call to `call-with-continuation-barrier` with an exception handler that intercepts ContinuationExceptions
+The macro replaces the call to `call-with-continuation-barrier` with an exception handler that intercepts `ContinuationException`s.
 
 ### `shift` and `reset`
 I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
