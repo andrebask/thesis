@@ -709,6 +709,25 @@ The `call-with-continuation-prompt` procedure is semantically equivalent to the 
 Other Scheme implementations, such as Racket or Guile, provides an extended version of this procedure that allows to set prompt tags and handlers. That extended version could be in theory implemented in Kawa modifying `TopLevelHandler` to support custom handlers.
 
 #### `call-with-continuation-barrier`
+Another procedure that we can provide is `call-with-continuation-barrier`. It applies a function with a continuation barrier between the application and the current continuation. The results of the function are the results of the `call-with-continuation-barrier` call. Thus, it do not allow the invocation of continuations that would leave or enter the dynamic extent of the call to `call-with-continuation-barrier`. Such an attempt causes an exception to be thrown.
+
+```scheme
+	(define-syntax call-with-continuation-barrier
+	  (syntax-rules ()
+		((_ f)
+		 (let ((ex #f))
+		  (try-catch (f)
+		(cex <CH>:ContinuationException
+			 (set! ex cex)))
+		  (when ex
+		(begin
+		  (ex:extend (<CH>:ContinuationFrame
+				(lambda (x)
+				  (throw (java.lang.Exception
+		                    "attempt to cross a
+		                      continuation barrier")))))
+		  (throw ex)))))))
+```
 
 ### `shift` and `reset`
 I introduced `shift` and `reset` operators and delimited continuations in Chapter 1. `call/cc` can be used to implement those two operators, as shown by Filinsky et al. in [@Filinski1994]. The following code is a port of their SML/NJ implementation:
