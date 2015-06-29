@@ -2,9 +2,13 @@
 
 This dissertation has presented an implementation of the `call/cc` control operator in the Kawa Scheme compiler targeting the JVM. Although the problem was delineated in some works in literature, there was not a compiler providing first-class continuations on the JVM in terms of `call/cc`.
 
-I developed a variant of generalised stack inspection in the Kawa compiler, addressing the problem of defining an A-normalisation algorithm for the Kawa super-set of Scheme, and realising a fragmentation and instrumentation pass using the existing Kawa framework. The whole transormation has been designed to be optional and separated from the existing passes, so that it does not add unnecessary overhead to programs without continuations.
+I developed a variant of generalised stack inspection in the Kawa compiler, addressing the problem of defining an A-normalisation algorithm for the Kawa super-set of Scheme, and realising a fragmentation and instrumentation pass using the existing Kawa framework. The whole transformation has been designed to be optional and separated from the existing passes, so that it does not add unnecessary overhead to programs without continuations.
+
+I explored variations of the technique to implement other control operators, such as `shift`/`reset` and prompts, as well as continuation barriers. Moreover, the two passes are flexible enough that could be used on a portion of the syntax tree, instead of the entire program.
 
 I showed the opportunities opened by the availability of `call/cc` developing a syntax for asynchronous programming, and exploiting the A-normalisation of the syntax tree to create a simple debugger.
+
+Eventually, the evaluation of performance and memory usage revealed that this technique can be a satisfying alternative to heap-based implementations of `call/cc`. Benchmarks also showed that the bottleneck of the technique is not exception handling, but closure allocation, leaving improvements margin.
 
 ## Future work
 
