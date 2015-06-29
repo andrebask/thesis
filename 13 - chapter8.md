@@ -12,6 +12,6 @@ This work can be further developed in several interesting directions. I will out
 
 * In the past few years several frameworks for concurrency appeared on the Java scene. Many of them use bytecode instrumentation to implement coroutines and provide lightweight threads with low memory and task-switching overhead. Quasar [@QuasarAkka2015], for instance, deliver the actor model on the JVM  using bytecode instrumentation. The transformation presented in this document can give an alternative for those frameworks that aim to provide a concurrency API for Java or JVM languages.
 
-* Recently, research has been done on the use of continuations in the context of web applications [@Matthews2004;@Queinnec2004]
+* Research has been done on the use of continuations in the context of web applications [@Matthews2004;@Queinnec2004]. The support for first-class continuations developed in the context of this thesis, can be utilised to implement continuation based web frameworks in Kawa or in Java.
 
 * DSU
