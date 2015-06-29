@@ -125,7 +125,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     }
 ```
 
-I tested each type of method call with JMH [@jmh2015; @BenchmarkingJVM2015], a benchmarking framework for the JVM. Figures \ref{calls-table, calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to re-design a significant part of the compiler, and to loose the compatibility with previous version of the JVM, for such a small improvement.
+I tested each type of method call with JMH [@jmh2015; @BenchmarkingJVM2015], a benchmarking framework for the JVM. Figures \ref{calls-table} , \ref{calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to re-design a significant part of the compiler, and to loose the compatibility with previous version of the JVM, for such a small improvement.
 
 ![Performance comparison of different types of call in Java \label{calls-table}](figures/calls-table.pdf)
 
@@ -146,7 +146,7 @@ In Java, when throwing an exception, the most expensive operation is the constru
     }
 ```
 
-I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a cached exception and a method call throwing a `FastException`.
+I performed a straightforward benchmark, comparing the time spent by a regular method call, a method call surrounded by an exception handler, a method call throwing a caught exception and a method call throwing a `FastException`.
 
 ```java
         // case 1
@@ -176,12 +176,12 @@ I performed a straightforward benchmark, comparing the time spent by a regular m
 
 The results from 10 million iterations are shown in the following table.
 
-|                    | time (ms) |
-|--------------------|-----------|
-| regular            | 1225      |
-| non cached         | 1240      |
-| catched            | 35482     |
-| catched, optimised | 1330      |
+|                      | time (ms) |
+|----------------------|-----------|
+| regular              | 1225      |
+| no caught exception  | 1240      |
+| caught exception     | 35482     |
+| caught, optimised    | 1330      |
 
 As you can see, to catch a `FastException` introduces a negligible overhead, while instantiating an `Exception` with its stack trace is more than an order of magnitude more expensive.
 
