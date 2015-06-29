@@ -638,7 +638,7 @@ return annotatedExp;
 
 ## Other control operators: delimited continuations
 
-The transformation and the support code described in this chapter is not only suitable to implement `call/cc`, but can also be employed to implement other control operators.
+The transformation and the support code described in this Chapter is not only suitable to implement `call/cc`, but can also be employed to implement other control operators.
 
 ### Prompts and barriers
 
