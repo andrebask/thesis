@@ -8,7 +8,7 @@ I explored variations of the technique to implement other control operators, suc
 
 I showed the opportunities opened by the availability of `call/cc` developing a syntax for asynchronous programming, and exploiting the A-normalisation of the syntax tree to create a simple debugger.
 
-Eventually, the evaluation of performance and memory usage revealed that this technique can be a satisfying alternative to heap-based implementations of `call/cc`. Benchmarks also showed that the bottleneck of the technique is not exception handling, but closure allocation, leaving improvements margin.
+Eventually, the evaluation of performance and memory usage revealed that this technique can be a satisfying alternative to heap-based implementations of `call/cc`. Benchmarks also showed that the bottleneck of the technique is not exception handling, but closure allocation, leaving room for improvement.
 
 ## Future work
 
