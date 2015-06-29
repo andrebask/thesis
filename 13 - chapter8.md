@@ -1,6 +1,6 @@
 # Conclusions and future work
 
-My main contribution is an implementation of call/cc in a Scheme compiler targeting the JVM. The only other Scheme implementations targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, shift and reset. Although Ruby has callcc, JRuby does not support it.
+This dissertation has presented an implementation of the `call/cc` control operator in the Kawa Scheme compiler targeting the JVM. Although the problem was delineated in some works in literature, there was not a compiler providing first-class continuations on the JVM in terms of `call/cc`.
 
 I address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
 
