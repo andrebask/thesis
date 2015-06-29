@@ -662,7 +662,7 @@ As an example, consider this simple expression:
 		   0)))) ; => 14
 ```
 
-This code is straightforward, it captures a continuation and stores in to the global binding `c`. The saved continuation looks like this:
+This code is straightforward, it captures a continuation and stores it in the global binding `c`. The saved continuation looks like this:
 
 ```scheme
 	(* 2 (+ 3 4 _))
