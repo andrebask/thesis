@@ -100,7 +100,7 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
 	        (reset
 	          (shift (lambda (k)
 				      (k)
-		              (fork (lambda () ; <- start call coroutine
+		              (fork (lambda () ; <- start coroutine
 			                  (set! var (call))
 			                  (exit)))))
 	          (fork (lambda () during-exp ... (exit))))
@@ -121,7 +121,7 @@ Consider the following example. We need to execute a time consuming function cal
 	      42)))
 ```
 
-Calling the long call with the `async` syntax it is possible to execute other code in a concurrent way. We can put `(yield)` call inside the loop to suspend the execution and resume the next coroutine in the queue. We do the same in the code to be executed ate the same time. The effect is that of running two tasks at the same time. The `await` keyword allows to wait for the result of the long call, which is bound to the specified variable (`x` in this example).
+Calling the long call with the `async` syntax it is possible to execute other code in a concurrent way. We can put `(yield)` call inside the loop to suspend the execution and resume the next coroutine in the queue. We do the same in the code to be executed at the same time. The effect is that of running two tasks at the same time. The `await` keyword allows to wait for the result of the long call, which is bound to the specified variable (`x` in this example).
 
 The logic is implemented using coroutines, the two expressions to be run concurrently are launched using a `fork`, while the result is awaited using `sync`. `reset`/`shift` allows us to delimit the extent of the continuation to be captured, and to change the order of the executed code.
 
@@ -165,14 +165,15 @@ The above code prints:
 ```
 
 ### Async with threads
-Using threads instead of coroutine we can avoid adding `(yield)` calls in our code, maintaining the same syntax. Kawa provides a simple interface to create parallel threads: `(future expression)` creates a new thread that evaluates expression, while `(force thread)` waits for the thread’s expression to finish executing, and returns the result. Kawa threads are implemented using Java threads.
+Using threads instead of coroutine we can avoid adding `(yield)` calls in our code, maintaining the same syntax. Kawa provides a simple interface to create parallel threads: `(future expression)` creates a new thread that evaluates `expression`, while `(force thread)` waits for the thread’s expression to finish executing, and returns the result. Kawa threads are implemented using Java threads.
 
 Thus we can remove `(yield)` calls from our code and redefine the `async`/`await` syntax to use Kawa threads:
 
 ```scheme
     (define-syntax async
       (syntax-rules (await)
-        ((async call during-exp ... (await var after-exp ...))
+        ((async call during-exp ...
+	       (await var after-exp ...))
          (let ((var #f))
 	        (reset
 	         (shift (lambda (k)
@@ -183,7 +184,7 @@ Thus we can remove `(yield)` calls from our code and redefine the `async`/`await
 	        after-exp ...))))
 ```
 
-Now the two tasks are run in parallel, and their output is not deterministic:
+Now the two tasks are run in parallel, and their printed output is not deterministic:
 
 ```
 	start async call
