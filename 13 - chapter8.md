@@ -2,9 +2,9 @@
 
 This dissertation has presented an implementation of the `call/cc` control operator in the Kawa Scheme compiler targeting the JVM. Although the problem was delineated in some works in literature, there was not a compiler providing first-class continuations on the JVM in terms of `call/cc`.
 
-I address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
+I developed a variant of generalised stack inspection in the Kawa compiler, addressing the problem of defining an A-normalisation algorithm for the Kawa super-set of Scheme, and realising a fragmentation and instrumentation pass using the existing Kawa framework. The whole transormation has been designed to be optional and separated from the existing passes, so that it does not add unnecessary overhead to programs without continuations.
 
-I present a variant of generalised stack inspection, described by Pettyjohn et al., as an extension of the Kawa compiler. The transformation is global, thus has been developed as an optional compiler pass, to avoid adding overhead to programs that do not use continuations.
+I showed the opportunities opened by the availability of `call/cc` developing a syntax for asynchronous programming, and exploiting the A-normalisation of the syntax tree to create a simple debugger.
 
 ## Future work
 
