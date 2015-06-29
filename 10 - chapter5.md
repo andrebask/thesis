@@ -361,7 +361,7 @@ public class CallCC extends Procedure1 {
 }
 ```
 
-A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using to much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java `ArrayList`, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
+A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using too much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java `ArrayList`, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
 
 ## A brief overview of Kawa's compilation process
 In Kawa there are mainly five compilation stages [@Bothner1998]:
@@ -493,7 +493,7 @@ protected Expression visitLetExp(LetExp exp, Void ignored) {
     Expression continueValue = letDecl.getInitValue();
 ```
 
-After A-normalization the code is mainly made by nested `let` expression that bind to a variable every atomic computation. `visitLetExp` takes a `LetExp` and transforms it in two closures, applying the first to the second one. The former closure executes an atomic computation and calls the latter closure. The latter closure contains the original body of the `let` expression, which will be further fragmented. Using the example from chapter 3:
+After A-normalization the code is mainly made by nested `let` expression that bind to a variable every atomic computation. `visitLetExp` takes a `LetExp` and transforms it in two closures, applying the first to the second one. The former closure executes an atomic computation and calls the latter closure. The latter closure contains the original body of the `let` expression, which will be further fragmented. Using the example from Chapter 3:
 
 ```scheme
     ((lambda (incr_an1)        ;   <--   closure #1
@@ -526,7 +526,7 @@ exp.body = new ApplyExp(applyRef,
                         new ReferenceExp(letDecl));
 ```
 
-The code that creates the second closure is very similar to which that generates the first one. It is an other new lambda expression that takes an argument. The body this time is the body of the original `LetExp`.
+The code that creates the second closure is very similar to which that generates the first one. It is another new lambda expression that takes an argument. The body this time is the body of the original `LetExp`.
 
 ```java
 Declaration continueValueDecl = new Declaration("continue-value");
