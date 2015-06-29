@@ -213,7 +213,7 @@ When you enable the debugging mode, the compiler instruments each atomic express
 As an example, suppose we need to debug this snippet of code:
 
 ```scheme
-	1 (define (find-first pred lst)
+	1 (define (get-first pred lst)
 	2   (call/cc
 	3     (lambda (return)
 	4       (for-each (lambda (x)
@@ -314,7 +314,7 @@ The breakpoint call also enables the step mode. Suspension instructions between 
 			          (loop))))))))
 ```
 
-Regarding the debugging instrumentation, the main part is performed in the `visitLetExp` method. I generated a new suspend expression, besides an instruction to add the value of the bind variable to the debugger table at runtime. For each let-bind expression. when the user calls the `print` command, he gets the last value of that variable from the table.
+Regarding the debugging instrumentation, the main part is performed in the `visitLetExp` method. I generate a new suspend expression, besides another instruction to add the value of the bind variable to the debugger table at runtime. For each let-bind expression, when the user calls the `print` command, he gets the last value of that variable from the table.
 
 ```java
 protected Expression visitLetExp(LetExp exp, Void ignored) {
