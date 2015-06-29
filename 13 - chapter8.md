@@ -14,4 +14,4 @@ This work can be further developed in several interesting directions. I will out
 
 * Research has been done on the use of continuations in the context of web applications [@Matthews2004;@Queinnec2004]. The support for first-class continuations developed in the context of this thesis, can be utilised to implement continuation based web frameworks in Kawa or in Java.
 
-* DSU
+* The research field of Dynamic Software Updating (DSU) pertains to upgrading programs while they are running. Different approaches for DSU has been developed, nevertheless it is not currently widely used in industry. Some of the approaches use a stack reconstruction technique similar in many aspects to the `call/cc` implementation described in this dissertation. Future work can start from the achievements of this work to explore an alternative implementation of DSU on the JVM.
