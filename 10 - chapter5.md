@@ -826,7 +826,7 @@ public class Reset extends TopLevelHandler {
 }
 ```
 
-The `DelimitedContinuation` objects is different from a `Continuation` in that it does not thrown an exception, but it returns a value. Moreover, the apply method reloads the frames inside a `reset` to handle possible future calls of `shift` inside the original outer `reset`.
+The `DelimitedContinuation` object is different from a `Continuation` in that it does not throws an exception, but it returns a value. Moreover, the apply method reloads the frames inside a `reset` to handle possible future calls of `shift` inside the original outer `reset`.
 
 ```java
 public class DelimitedContinuation extends Continuation {
@@ -849,7 +849,7 @@ public class DelimitedContinuation extends Continuation {
 ### Selective transformation
 Using delimited continuations instead of un-delimited ones, gives us the chance to avoid transforming the whole source code. For instance, if we use `reset`/`shift` in a small portion of a program, we can transform only that portion an leave the rest untouched.
 
-The following code is a basic implementation of this idea. The two macros transform the code starting from a `call-with-continuation-prompt` call. The first macro marks the code to be processed by a successive pass, the `call/cc-rewrite` macro operates on the syntax tree performing the A-normalization pass and the instrumentation pass on the expression. This gives us continuation-enabled code enclosed in the `call-with-continuation-prompt`.
+The following code is a basic implementation of this idea. The two macros transform the code starting from a `call-with-continuation-prompt` call. The first macro marks the code to be processed by a successive pass. Than the `call/cc-rewrite` macro operates on the syntax tree performing the A-normalization pass and the instrumentation pass on the expression. This gives us continuation-enabled code enclosed in the `call-with-continuation-prompt`.
 
 ```scheme
 	(define-namespace <TLH> <gnu.expr.continuations.TopLevelHandler>)

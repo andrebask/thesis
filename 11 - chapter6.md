@@ -9,6 +9,8 @@ George Orwell, 1984
 
 Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain.
 
+In this section, I propose a syntax similar to the `async`/`await` construct already introduced in C#, that allows to execute asynchronous tasks during the normal execution of the program.
+
 ```scheme
 	(define (async-call)
 	  ... long running operation
