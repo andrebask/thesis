@@ -785,7 +785,7 @@ I introduced `shift` and `reset` operators and delimited continuations in Chapte
 #### Native `shift` and `reset`
 Although we can implement delimited continuations using `call/cc`, we can avoid unnecessary overhead implementing `shift` and `reset` in Java, modifying the existing `call/cc` implementation.
 
-The `reset` function is semantically similar to the `TopLevelHandler`, while the `shift` can be seen as a kind of `call/cc`. The main difference is that the continuation captured by the `shift` has a limited extent and behaves as an actual function, returning a value. So invoking the continuation inside the `shift` call does not have the effect of escaping the procedure.
+The `reset` function is semantically similar to the `TopLevelHandler`, while the `shift` can be seen as a kind of `call/cc`. The main difference is that the continuation captured by the `shift` has a limited extent and behaves as an actual function, returning a value. So invoking the continuation inside the `shift` call does not have the effect of escaping from the procedure.
 
 ```java
 public class Shift extends Procedure1 {
