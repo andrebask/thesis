@@ -363,6 +363,8 @@ public class CallCC extends Procedure1 {
 
 A significant variation with respect to the implementation proposed by Pettyjohn et al. is that the function that resumes the stack frames is implemented using iteration instead of recursion. This avoids using too much stack, as the JVM, differently from the C# MSIL, does not support tail call optimisation. Another difference is in the representation of the list of frames. Instead of using a linked list adding elements at the beginning, I used a Java `ArrayList`, adding elements at the end of the list. This allows to avoid reversing a list at every capture, and saves an object allocation at each list extension.
 
+\newpage
+
 ## A brief overview of Kawa's compilation process
 In Kawa there are mainly five compilation stages [@Bothner1998]:
 
