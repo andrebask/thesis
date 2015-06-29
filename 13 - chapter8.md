@@ -1,6 +1,10 @@
 # Conclusions and future work
 
+My main contribution is an implementation of call/cc in a Scheme compiler targeting the JVM. The only other Scheme implementations targeting the JVM are SISC, which is an heap based interpreter, and Bigloo, which is a compiler but does not support continuations in the JVM back-end. Scala implements a different type of control operator, shift and reset. Although Ruby has callcc, JRuby does not support it.
 
+I address the problem of providing a control operator that copies the stack in an environment that prevents direct stack manipulation. Unlike other solutions proposed to implement continuations on the JVM, we perform a transformation on the syntax tree produced by Kawa, instead of a transformation at the bytecode level. This make our transformation independent of the JVM version.
+
+I present a variant of generalised stack inspection, described by Pettyjohn et al., as an extension of the Kawa compiler. The transformation is global, thus has been developed as an optional compiler pass, to avoid adding overhead to programs that do not use continuations.
 
 ## Future work
 
@@ -14,4 +18,4 @@ This work can be further developed in several interesting directions. I will out
 
 * Research has been done on the use of continuations in the context of web applications [@Matthews2004;@Queinnec2004]. The support for first-class continuations developed in the context of this thesis, can be utilised to implement continuation based web frameworks in Kawa or in Java.
 
-* The research field of Dynamic Software Updating (DSU) pertains to upgrading programs while they are running. Different approaches for DSU has been developed, nevertheless it is not currently widely used in industry. Some of the approaches use a stack reconstruction technique similar in many aspects to the `call/cc` implementation described in this dissertation. Future work can start from the achievements of this work to explore an alternative implementation of DSU on the JVM.
+* The research field of Dynamic Software Updating (DSU) pertains to upgrading programs while they are running [@gregersen2014state;@Makris2009]. Different approaches for DSU has been developed, nevertheless it is not currently widely used in industry. Some of the approaches use a stack reconstruction technique similar in many aspects to the `call/cc` implementation described in this dissertation [@Buisson2008]. Future work can start from the achievements of this work to explore an alternative implementation of DSU on the JVM.
