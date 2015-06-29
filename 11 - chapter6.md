@@ -7,9 +7,7 @@ George Orwell, 1984
 
 ## Asynchronous programming: Async and Await
 
-Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain.
-
-In this section, I propose a syntax similar to the `async`/`await` construct already introduced in C#, that allows to execute asynchronous tasks during the normal execution of the program.
+Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain. In this section, I propose a syntax similar to the `async`/`await` construct already introduced in C#, that allows to execute asynchronous tasks during the normal execution of the program.
 
 ```scheme
 	(define (async-call)
@@ -24,11 +22,11 @@ In this section, I propose a syntax similar to the `async`/`await` construct alr
 		... the result ...))
 ```
 
-We will see in this section how asynchronous programming features can be added to Scheme using coroutines and delimited continuations.
+We will also see how asynchronous programming features can be added to Scheme using coroutines and delimited continuations.
 
 ### Coroutines
 
-Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed by obtained with few lines of code in scheme. The following code is a port of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe], where the code for managing a queue has been omitted for brevity:
+Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed be obtained with few lines of code in Scheme. The following code is a port of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe], where the code for managing a queue has been omitted for brevity:
 
 \columnsbegin
 
@@ -86,7 +84,7 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 
 \columnsend
 
-The function `coroutine` establishes a context for running the passed thunk; the `fork` function starts the execution of a new coroutine. The implementation uses an internal prompt to establish the scope of the coroutine. The state of a running coroutine is saved as a function in the queue when doing a `yield`, than the next coroutine in the queue is started by `dispatch`. To end a process, we can call the `exit` function, which calls `dispatch` without saving the current process in the queue. `sync` allows to wait until all the processes are finished.
+The function `coroutine` establishes a context for running the passed thunk; the `fork` function starts the execution of a new coroutine. The implementation uses an internal prompt (`thread-activator`) to establish the scope of the coroutine. The state of a running coroutine is saved as a function in the queue when doing a `yield`, than the next coroutine in the queue is started by `dispatch`. To end a process, we can call the `exit` function, which calls `dispatch` without saving the current process in the queue. `sync` allows to wait until all the processes are finished.
 
 Control operators like `call/cc` make the implementation of coroutines simpler because one can separate the management of queues from the processes.
 
