@@ -204,8 +204,8 @@ Scheme syntax is essential, it provides a minimal set of special forms: define, 
 `lambda` is used to create anonymous functions.
 
 ```scheme
-	(lambda (x) (* x 10)                    ; anonymous function
-	(define times10 (lambda (x) (* x 10)))   ; named the function now
+	(lambda (x) (* x 10)                   ; anonymous function
+	(define times10 (lambda (x) (* x 10))) ; named the function now
 ```
 
 `cond` is a general conditional.
@@ -232,19 +232,19 @@ A set of built-in functions we can use on these types:
 	;; arithmetic:  +, -, *, /
 	;; relational: <, <=, >, >=, =
 	(+ 1 2)                    => 3
-	(= 1 2)                    => #f   ; '=' is for numbers
+	(= 1 2)                    => #f ; '=' is for numbers
 ```
 
 Equality and identity tests:
 
 ```scheme
-	(eq? 'hello 'goodbye)      => #f   ; eq? is an identity test
+	(eq? 'hello 'goodbye)      => #f ; eq? is an identity test
 	(eq? 'hello 'hello)        => #t
 	(eq? '(1 2) '(1 2))        => #f
 	(define foo '(1 2))
 	(define bar foo)
 	(eq? foo bar)              => #t
-	(equal? foo bar)           => #t   ; equality: they look the same
+	(equal? foo bar)           => #t ; equality: they look the same
 	(equal? foo '(1 2))        => #t
 ```
 

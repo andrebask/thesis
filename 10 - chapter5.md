@@ -81,8 +81,9 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
     static Frame fib_frame0(int x)
             throws Exception {
         Frame f = (Object continue_value)
-                    -> { return fib_frame0_invoke(x, continue_value);};
-
+                   -> {
+                        return fib_frame0_invoke(x, continue_value);
+			          };
         return f;
 	}
 
@@ -203,26 +204,26 @@ For capturing and resuming continuations we need a framework to support all the 
 The basic blocks of a continuation are its `ContinuationFrame`s. A `ContinuationFrame` (for brevity, a frame) is a simple data structure which contains a single computation (a `Procedure` that takes one argument), and a list of `ContinuationFrame`s. The list is used by the next capture of a continuation. All the frames needed to assemble a continuation are collected using a `ContinuationException`. This class extends `FastException` and stores the list of frames which is extended step by step by the chain of throws. It contains also a list of frames that have been already reloaded by a previously call to `call/cc`. When the exception reaches the top level exception handler, this calls the method `toContinuation` that builds a new `Continuation` object using the two lists.
 
 ```java
-    public static class ContinuationException extends FastException {
+public static class ContinuationException extends FastException {
 
-        ArrayList<ContinuationFrame>
-        newCapturedFrames = new ArrayList<ContinuationFrame>();
+    ArrayList<ContinuationFrame>
+    newCapturedFrames = new ArrayList<ContinuationFrame>();
 
-        ArrayList<ContinuationFrame> reloadedFrames;
+    ArrayList<ContinuationFrame> reloadedFrames;
 
-        public void extend(ContinuationFrame extension) {
-            newCapturedFrames.add(extension);
-        }
-
-        public void append(ArrayList<ContinuationFrame> oldFrames) {
-            reloadedFrames = oldFrames;
-        }
-
-        public Continuation toContinuation() throws Exception {
-            return new Continuation(newCapturedFrames,
-                                    reloadedFrames);
-        }
+    public void extend(ContinuationFrame extension) {
+        newCapturedFrames.add(extension);
     }
+
+    public void append(ArrayList<ContinuationFrame> oldFrames) {
+        reloadedFrames = oldFrames;
+    }
+
+    public Continuation toContinuation() throws Exception {
+        return new Continuation(newCapturedFrames,
+                                reloadedFrames);
+    }
+}
 ```
 
 The `Continuation` constructor takes the two lists and assembles the continuation.

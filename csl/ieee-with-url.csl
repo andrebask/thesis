@@ -217,7 +217,7 @@
     </layout>
   </citation>
   <!-- Bibliography -->
-  <bibliography entry-spacing="2" second-field-align="flush">
+  <bibliography entry-spacing="0" second-field-align="flush">
     <layout>
       <!-- Citation Number -->
       <text variable="citation-number" prefix="[" suffix="] "/>
