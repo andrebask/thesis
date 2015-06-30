@@ -40,6 +40,8 @@
 \usepackage{booktabs}
 \usepackage{threeparttable}
 \usepackage{array}
+\usepackage{setspace}
+\usepackage{afterpage}
 \newcolumntype{x}[1]{%
 >{\centering\arraybackslash}m{#1}}%
 
@@ -52,3 +54,8 @@
 \usepackage{multicol}
 \newcommand{\columnsbegin}{\begin{multicols}{2}}
 \newcommand{\columnsend}{\end{multicols}}
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}

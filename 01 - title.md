@@ -6,6 +6,7 @@
   \normalsize
   Corso di Laurea Magistrale in Ingegneria Informatica\\
 
+  \vspace*{0.7cm}
   \begin{figure}[htbp]
     \begin{center}
       \includegraphics[width=3.5cm]{./figures/logopm}
@@ -35,7 +36,7 @@
 \begin{flushright}
 
 
-  Tesi di Laurea di:\\ Andrea Bernardini, matricola 786244 \\
+  Tesi di Laurea di:\\ Andrea Bernardini \\ matricola 786244 \\
 
 
 \end{flushright}
@@ -47,3 +48,4 @@
   Anno Accademico 2014-2015
 \end{center} \clearpage
 }
+\afterpage{\blankpage}
