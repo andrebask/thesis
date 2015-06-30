@@ -58,28 +58,28 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 \columnbreak
 
 ```scheme
-	(define (yield)
-	  (call/cc
-	   (lambda (parent)
-		 (coroutine (lambda ()
-		              (parent #f)))
-		 (dispatch))))
+  (define (yield)
+    (call/cc
+     (lambda (parent)
+	   (coroutine (lambda ()
+	                (parent #f)))
+	   (dispatch))))
 
-	(define (thread-activator)
-	  (call/cc
-	   (lambda (parent)
-		 (let ((f (call/cc
-		           (lambda (fc)
-			        (parent fc)))))
-		   (f)
-		   (exit)))))
+  (define (thread-activator)
+    (call/cc
+     (lambda (parent)
+	   (let ((f (call/cc
+	             (lambda (fc)
+	    	        (parent fc)))))
+	     (f)
+	     (exit)))))
 
-	(define (fork f)
-	  (call/cc
-	   (lambda (parent)
-		 (coroutine (lambda ()
-		              (parent #f)))
-		 ((thread-activator) f))))
+  (define (fork f)
+    (call/cc
+     (lambda (parent)
+	   (coroutine (lambda ()
+	                (parent #f)))
+	   ((thread-activator) f))))
 ```
 
 \columnsend
