@@ -70,7 +70,7 @@ Coroutines are functions that can be paused and later resumed. They are necessar
      (lambda (parent)
 	   (let ((f (call/cc
 	             (lambda (fc)
-	    	        (parent fc)))))
+	    	      (parent fc)))))
 	     (f)
 	     (exit)))))
 
