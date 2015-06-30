@@ -1,10 +1,13 @@
 \thispagestyle{empty}
 \vspace*{-1.5cm} {\bfseries
 \begin{center}
-  \large
+  \Large
   POLITECNICO DI MILANO\\
+  \large
+  Scuola di Ingegneria Industriale e dell’Informazione\\
   \normalsize
   Corso di Laurea Magistrale in Ingegneria Informatica\\
+  Dipartimento di Elettronica, Informazione e Bioingegneria\\
 
   \vspace*{0.7cm}
   \begin{figure}[htbp]
@@ -21,8 +24,8 @@
 
 
 
-  \vspace*{.75truecm} \large
-  Dipartimento di Elettronica Informazione e Bioingegneria\\
+  \vspace*{.75truecm}
+
 \end{center}
 \vspace*{3.0cm} \large
 \begin{flushleft}
