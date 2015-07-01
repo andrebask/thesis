@@ -51,4 +51,9 @@
   Anno Accademico 2014-2015
 \end{center} \clearpage
 }
-\afterpage{\blankpage}
+
+\begin{flushright}
+\textit{To my family}
+\end{flushright}
+
+\newpage
