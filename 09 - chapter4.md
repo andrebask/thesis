@@ -36,11 +36,11 @@ This section shows how the generalised stack inspection technique described by P
 In our case, this step is not necessary. Indeed, management of shared variable bindings is an orthogonal issue with respect to our global transformation, and it is shared between all the languages that provide lexical closures. Kawa already supports lexical closures, so has its way of managing variable bindings. For each closure, Kawa creates a new class to represent a function together with the environment of captured variables.
 
 ### A-Normalization
-The first step of the process is to transform the source to A-normal form. ANF was introduced by Flanagan et al. in [@Flanagan1993] as an intermediate representation for compilers. It encodes data flow explicitly by naming all sub-expressions within the program and permitting only a single definition of any particular variable. The paper by Flanagan et al. also presents a basic linear-time A-normalization algorithm for a subset of scheme. The algorithm can be easily extended to handle top-level defines and side effects [@ANFMight2015]. Being Kawa a super-set of R7RS Scheme and having also many Java related extensions, the code of the original a-normalizer must be further extended. Instead of performing the transformation directly on the Scheme source, I opted for performing it on the abstract syntax tree, as it already uses a reduced set of expression types.
+The first step of the process is to transform the source to A-normal form. ANF was introduced by Flanagan et al. in [@Flanagan1993] as an intermediate representation for compilers. It encodes data flow explicitly by naming all sub-expressions within the program and permitting only a single definition of any particular variable. The paper by Flanagan et al. also presents a basic linear-time A-normalization algorithm for a subset of Scheme. The algorithm can be easily extended to handle top-level defines and side effects [@ANFMight2015]. Being Kawa a super-set of R7RS Scheme and having also many Java related extensions, the code of the original A-normalizer must be further extended. Instead of performing the transformation directly on the Scheme source, I opted for performing it on the abstract syntax tree, as it already uses a reduced set of expression types.
 
 The following code shows an instance of the transformation in three steps. The *return* operation corresponds to the identity function, while the *bind* operation is a function that constructs let bindings to make every atomic computation explicit (the bind here has the same purpose as the `normalizeName` function in the Flanagan et al. paper).
 
-The syntax tree is traversed starting from the root, and each non-atomic expression is passed to the `bind` with another parameter, called context (the very first context is the identity function that returns its argument). The context is a function that can be invoked. When the visiting process reaches a non-atomic expression a new context is created, and the passed context is called only inside the new one. The `bind` function has two purposes:
+The syntax tree is traversed starting from the root, and each non-atomic expression is passed to the `bind` with another parameter, called *context* (the very first context is the identity function that returns its argument). The context is a function that can be invoked. When the visiting process reaches a non-atomic expression a new context is created, and the passed context is called only inside the new one. The `bind` function has two purposes:
 
 1. to create a context, that generates a `let` expression to let-bind the expression next to come in the traversing process;
 2. to visit the passed expression, to continue the syntax tree traversing.
@@ -84,7 +84,7 @@ The algoritm performs a monadic transformation combining three steps:
 ```
 
 ### Code fragmentation
-This transformation, working on code previously a-normalized, fragments the code in a sequence of function calls. Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewritten as a sequence of function calls, each call representing a computation step. This way of fragmenting the source allows to avoid defining many top level procedures, that would also require an additional pass to perform live variable analysis.
+This transformation, working on code previously A-normalized, fragments the code in a sequence of function calls. Each let-bind expression is enclosed in a lambda closure that accepts one argument. The argument is an other lambda closure that has in the body the call to the next code fragment. In this way the original source is rewritten as a sequence of function calls, each call representing a computation step. This way of fragmenting the source allows to avoid defining many top level procedures, that would also require an additional pass to perform live variable analysis.
 
 An example of the entire transformation is showed below:
 
@@ -100,7 +100,7 @@ An example of the entire transformation is showed below:
       1) ; => 1
 ```
 
-2. after a-normalization
+2. after A-normalization
 
 ```scheme
     (let ((v1 (lambda (k)              ; computation #1
@@ -131,7 +131,7 @@ Kawa's support for lexical closures allows to completely avoid these steps. Each
 A continuation will be composed of a series of frames. A *frame* is an object with a method that accepts a single value (the argument to the continuation) and invokes the appropriate procedure fragment, to continue the computation from the capture point. Also these frames will be closed over the next fragment to call.
 
 ### Code Instrumentation
-Beside fragmentation, instrumentation is performed installing exception handlers around each computation step to enable the capture and resume of continuations. Kawa supports `try-catch` expressions, which are translated directly to native `try/catch` statements in Java bytecode. A `try-catch` expression is created around each computation to capture a possible `ContinuationException`. The installed exception handler adds a new frame (an invokable object enclosing a call the next computation step) to the list of frames included inside the `ContinuationException` object, than rethrows the exception.
+Beside fragmentation, instrumentation is performed for installing exception handlers around each computation step to enable the capture and resume of continuations. Kawa supports `try-catch` expressions, which are translated directly to native `try/catch` statements in Java bytecode. A `try-catch` expression is created around each computation to capture a possible `ContinuationException`. The installed exception handler adds a new frame (an invokable object enclosing a call the next computation step) to the list of frames included inside the `ContinuationException` object, than rethrows the exception.
 
 The following code resembles the final result after instrumentation:
 
@@ -163,7 +163,7 @@ In the next chapter, we will see a possible solution to this problem.
 ### Code size
 The creation of fragments will introduce a number of extra code. Although the overhead should be small, there will be an increase in code size proportional to the number of code fragments.
 
-Code instrumentation introduces a number of `try/catch` blocks. This will also increase code size proportional to the number of code fragments.
+Code instrumentation introduces a number of `try/catch` blocks. This will also increase code size proportional to the number of code fragments. Chapter 6 will present an estimate of the code size increase.
 
 ### Integration
 Given that the code transformation needed to support continuations adds a overhead to the compilation process and the generated bytecode, it is necessary to implement A-normalization and instrumentation as optional passes, that can be enabled only when we want to use `call/cc`. This adds the challenge of integrating such a global transformation in Kawa, avoiding to make too many changes to the compiler.
