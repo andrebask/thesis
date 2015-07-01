@@ -7,26 +7,26 @@ George Orwell, 1984
 
 ## Asynchronous programming: Async and Await
 
-Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as the accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain. In this section, I propose a syntax similar to the `async`/`await` construct already introduced in C#, that allows to execute asynchronous tasks during the normal execution of the program.
+Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain. In this section, I propose a syntax similar to the `async`/`await` construct already introduced in C#, that allows to execute asynchronous tasks during the normal execution of the program.
 
 ```scheme
-	(define (async-call)
+	(define (<async-call> <arg>*)
 	  ... long running operation
-		  that returns an int  ...)
+		  that returns an int ...)
 
-	(async async-call
+	(async (<async-call> <arg>*)
 	  ... work independent to the
 		  int result here  ...
-	  (await x ; <- wait for the result
+	  (await <var> ; <- wait for the result
 		... here you can use ...
-		... the result ...))
+		... the result, contained in <var> ...))
 ```
 
 We will also see how asynchronous programming features can be added to Scheme using coroutines and delimited continuations.
 
 ### Coroutines
 
-Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, having first-class continuations, becomes painless to implement coroutines. They can indeed be obtained with few lines of code in Scheme. The following code is a port of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe], where the code for managing a queue has been omitted for brevity:
+Coroutines are functions that can be paused and later resumed. They are necessary to build lightweight threads because they provide the ability to change execution context. Coroutines are considered challenging to implement on the JVM, as they are usually implemented using bytecode instrumentation. However, first-class continuations makes painless to implement coroutines. They can indeed be obtained with few lines of code in Scheme. The following code is a port of safe-for-space cooperative threads presented by Biagioni et al. in [@biagioni1998safe], where the code for managing a queue has been omitted for brevity:
 
 \columnsbegin
 
@@ -101,7 +101,7 @@ With the availability of coroutines and `reset`/`shift` we can implement an `asy
 	          (shift (lambda (k)
 				      (k)
 		              (fork (lambda () ; <- start coroutine
-			                  (set! var (call))
+			                  (set! var call)
 			                  (exit)))))
 	          (fork (lambda () during-exp ... (exit))))
 	        (sync) ; <- wait until all coroutines finish
@@ -128,7 +128,7 @@ The logic is implemented using coroutines, the two expressions to be run concurr
 ```scheme
 	(display "start async call")
     (newline)
-    (async long-call
+    (async (long-call)
            (display "do other things in the meantime...")
            (newline)
            (let loop ((x 0))
@@ -177,7 +177,7 @@ Thus we can remove `(yield)` calls from our code and redefine the `async`/`await
          (let ((var #f))
 	        (reset
 	         (shift (lambda (k)
-		          (set! var (future (call))) ; <- start thread
+		          (set! var (future call)) ; <- start thread
 		          (k)))
 	         during-exp ...)
 	        (set! var (force var)) ; <- wait for result
