@@ -243,10 +243,10 @@ public class Continuation extends Procedure0or1 {
         for(int i = newFrames.size()-1; i >= 0; i--) {
             ContinuationFrame newFrame = newFrames.get(i);
             if (newFrame.continuation != null) {
-                throw new Error("Continuation should be empty here");
+			   throw new Error("Continuation should be empty here");
             }
             newFrame.continuation
-			    = new ArrayList<ContinuationFrame>(frames);
+			   = new ArrayList<ContinuationFrame>(frames);
             frames.add(newFrame);
         }
     }
@@ -285,7 +285,8 @@ The `Continuation` object also contains the method to resume the continuation. `
         for (int i = endIndex; i >= 0; i -= 1) {
             ContinuationFrame frame = frames.get(i);
             try {
-                continueValue = frame.computation.apply1(continueValue);
+				continueValue = frame.computation
+			                            .apply1(continueValue);
             } catch (ContinuationException sce) {
                 sce.append(frame.continuation);
                 throw sce;
