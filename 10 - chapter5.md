@@ -641,7 +641,7 @@ return annotatedExp;
 
 ## Other control operators: delimited continuations
 
-The transformation and the support code described in this Chapter is not only suitable to implement `call/cc`, but can also be employed to implement other control operators.
+The transformation and the support code described in this Chapter is not only suitable to implement `call/cc`, but it can also be employed to implement other control operators.
 
 ### Prompts and barriers
 
@@ -829,7 +829,7 @@ public class Reset extends TopLevelHandler {
 }
 ```
 
-The `DelimitedContinuation` object is different from a `Continuation` in that it does not throws an exception, but it returns a value. Moreover, the apply method reloads the frames inside a `reset` to handle possible future calls of `shift` inside the original outer `reset`.
+The `DelimitedContinuation` object is different from a `Continuation` in that it does not throw an exception, but it returns a value. Moreover, the apply method reloads the frames inside a `reset` to handle possible future calls of `shift` inside the original outer `reset`.
 
 ```java
 public class DelimitedContinuation extends Continuation {
