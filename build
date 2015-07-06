@@ -11,4 +11,4 @@ pandoc --highlight-style=tango \
        --bibliography=papers.bib \
        --csl="csl/ieee-with-url.csl" \
        *-*.md \
-       -o "thesis.pdf"
+       -o "thesis.tex"

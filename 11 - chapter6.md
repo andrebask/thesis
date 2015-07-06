@@ -84,7 +84,7 @@ Coroutines are functions that can be paused and later resumed. They are necessar
 
 \columnsend
 
-The function `coroutine` establishes a context for running the passed thunk; the `fork` function starts the execution of a new coroutine. The implementation uses an internal prompt (`thread-activator`) to establish the scope of the coroutine. The state of a running coroutine is saved as a function in the queue when doing a `yield`, than the next coroutine in the queue is started by `dispatch`. To end a process, we can call the `exit` function, which calls `dispatch` without saving the current process in the queue. `sync` allows to wait until all the processes are finished.
+The function `coroutine` establishes a context for running the passed thunk; the `fork` function starts the execution of a new coroutine. The implementation uses an internal prompt (`thread-activator`) to establish the scope of the coroutine. The state of a running coroutine is saved as a function in the queue when doing a `yield`, then the next coroutine in the queue is started by `dispatch`. To end a process, we can call the `exit` function, which calls `dispatch` without saving the current process in the queue. `sync` allows to wait until all the processes are finished.
 
 Control operators like `call/cc` make the implementation of coroutines simpler because one can separate the management of queues from the processes. Coroutines are used in different applications, because they make certain concurrent computations much easier to express and easier to understand, and because, when the number of threads is high, the can give a significant performance improvement over native threads.
 

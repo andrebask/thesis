@@ -201,7 +201,7 @@ For capturing and resuming continuations we need a framework to support all the 
     }
 ```
 
-The basic blocks of a continuation are its `ContinuationFrame`s. A `ContinuationFr-ame` (for brevity, a frame) is a simple data structure which contains a single computation (a `Procedure` that takes one argument), and a list of `ContinuationFrame`s. The list is used by the next capture of a continuation. All the frames needed to assemble a continuation are collected using a `ContinuationException`. This class extends `FastException` and stores the list of frames which is extended step by step by the chain of throws. It contains also a list of frames that have been already reloaded by a previously call to `call/cc`. When the exception reaches the top level exception handler, this calls the method `toContinuation` that builds a new `Continuation` object using the two lists.
+The basic blocks of a continuation are its `ContinuationFrame`s. A `ContinuationFr-` `ame` (for brevity, a frame) is a simple data structure which contains a single computation (a `Procedure` that takes one argument), and a list of `ContinuationFrame`s. The list is used by the next capture of a continuation. All the frames needed to assemble a continuation are collected using a `ContinuationException`. This class extends `FastException` and stores the list of frames which is extended step by step by the chain of throws. It contains also a list of frames that have been already reloaded by a previously call to `call/cc`. When the exception reaches the top level exception handler, this calls the method `toContinuation` that builds a new `Continuation` object using the two lists.
 
 ```java
 public static class ContinuationException extends FastException {
@@ -713,7 +713,7 @@ The `call-with-continuation-prompt` procedure is semantically equivalent to the 
 Other Scheme implementations, such as Racket or Guile, provides an extended version of this procedure that allows to set prompt tags and handlers. That extended version could be in theory implemented in Kawa modifying `TopLevelHandler` to support custom handlers.
 
 #### `call-with-continuation-barrier`
-Another procedure that we can provide is `call-with-continuation-barrier`. It applies a function with a continuation barrier between the application and the current continuation, than returns the result of the function call. Morover, it do not allow the invocation of continuations that would leave or enter the dynamic extent of the call to `call-with-continuation-barrier`. Such an attempt causes an exception to be thrown.
+Another procedure that we can provide is `call-with-continuation-barrier`. It applies a function with a continuation barrier between the application and the current continuation, then returns the result of the function call. Morover, it do not allow the invocation of continuations that would leave or enter the dynamic extent of the call to `call-with-continuation-barrier`. Such an attempt causes an exception to be thrown.
 
 ```scheme
 	(define-namespace <CH>
@@ -732,7 +732,7 @@ Another procedure that we can provide is `call-with-continuation-barrier`. It ap
 	         (throw cex))))))
 ```
 
-The macro replaces the call to `call-with-continuation-barrier` with an exception handler that intercepts `ContinuationException`s. The exception handler extends the continuation with a new frame that when invoked throws an exception. Than  re-throws the original `ContinuationException` so that the original `call/cc` call is not affected.
+The macro replaces the call to `call-with-continuation-barrier` with an exception handler that intercepts `ContinuationException`s. The exception handler extends the continuation with a new frame that when invoked throws an exception. Then re-throws the original `ContinuationException` so that the original `call/cc` call is not affected.
 
 If we try the previous example using this time a continuation barrier, we get an error:
 
@@ -853,7 +853,7 @@ public class DelimitedContinuation extends Continuation {
 ### Selective transformation
 Using delimited continuations instead of un-delimited ones, gives us the chance to avoid transforming the whole source code. For instance, if we use `reset`/`shift` in a small portion of a program, we can transform only that portion an leave the rest untouched.
 
-The following code is a basic implementation of this idea. The two macros transform the code starting from a `call-with-continuation-prompt` call. The first macro marks the code to be processed by a successive pass. Than the `call/cc-rewrite` macro operates on the syntax tree performing the A-normalization pass and the instrumentation pass on the expression. This gives us continuation-enabled code enclosed in the `call-with-continuation-prompt`.
+The following code is a basic implementation of this idea. The two macros transform the code starting from a `call-with-continuation-prompt` call. The first macro marks the code to be processed by a successive pass. Then the `call/cc-rewrite` macro operates on the syntax tree performing the A-normalization pass and the instrumentation pass on the expression. This gives us continuation-enabled code enclosed in the `call-with-continuation-prompt`.
 
 ```scheme
 	(define-namespace <TLH> <gnu.expr.continuations.TopLevelHandler>)
