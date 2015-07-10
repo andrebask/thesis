@@ -1492,7 +1492,6 @@ The process consists of six steps {[}\hyperref[ref-Marshall2009]{29},
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\tightlist
 \item
   Assignment Conversion - Capturing and re-instating a continuation will
   cause variables to be unbound and rebound multiple times. Variable
@@ -1502,76 +1501,71 @@ The process consists of six steps {[}\hyperref[ref-Marshall2009]{29},
   into explicit heap-allocated boxes, thereby avoiding problems with
   duplication of values. This conversion is best explained by showing it
   in Scheme source code:
-\end{enumerate}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-    \NormalTok{(}\KeywordTok{lambda} \NormalTok{(x) ... x ... (set! x value) ...)}
-        \KeywordTok{=>}
-    \NormalTok{(}\KeywordTok{lambda} \NormalTok{(x)}
-        \NormalTok{(}\KeywordTok{let} \NormalTok{((y (make-cell x)))}
-            \NormalTok{... (contents y) ... (set-contents! y value) ...))}
+\NormalTok{(}\KeywordTok{lambda} \NormalTok{(x) ... x ... (set! x value) ...)}
+    \KeywordTok{=>}
+\NormalTok{(}\KeywordTok{lambda} \NormalTok{(x)}
+    \NormalTok{(}\KeywordTok{let} \NormalTok{((y (make-cell x)))}
+        \NormalTok{... (contents y) ... (set-contents! y value) ...))}
 \end{Highlighting}
 \end{Shaded}
 
-where \texttt{(make-cell\ x)} returns a new \texttt{cell} containing the
-value \texttt{x}, \texttt{(contents\ cell)} returns the value in
-\texttt{cell}, and \texttt{(set-contents!\ cell\ val)} updates
-\texttt{cell} with the new value \texttt{val}. After assignment
-conversion, the values of variables can no longer be altered - all
-side-effects are to data structures. This greatly simplifies the code
-transformation, because values may now be freely substituted for
-variables without having to first check to see whether they are assigned
-{[}\hyperref[ref-adams1986orbit]{22}{]}. 2. ANF Conversion - The code is
-converted to \emph{administrative normal form} (A-normal form or ANF).
-Converting the code into A-normal form
-{[}\hyperref[ref-Flanagan1993]{34}{]} gives names to the temporary
-values and linearizes the control flow by replacing compound expressions
-with an equivalent sequence of primitive expressions and variable
-bindings. After ANF conversion, all procedure calls will either be the
-right-hand side of an assignment statement or a return statement. For
-instance, the following Scheme code shows the ANF transformation of a
-very simple expression:
+  where \texttt{(make-cell\ x)} returns a new \texttt{cell} containing
+  the value \texttt{x}, \texttt{(contents\ cell)} returns the value in
+  \texttt{cell}, and \texttt{(set-contents!\ cell\ val)} updates
+  \texttt{cell} with the new value \texttt{val}. After assignment
+  conversion, the values of variables can no longer be altered - all
+  side-effects are to data structures. This greatly simplifies the code
+  transformation, because values may now be freely substituted for
+  variables without having to first check to see whether they are
+  assigned {[}\hyperref[ref-adams1986orbit]{22}{]}.
+\item
+  ANF Conversion - The code is converted to \emph{administrative normal
+  form} (A-normal form or ANF). Converting the code into A-normal form
+  {[}\hyperref[ref-Flanagan1993]{34}{]} gives names to the temporary
+  values and linearizes the control flow by replacing compound
+  expressions with an equivalent sequence of primitive expressions and
+  variable bindings. After ANF conversion, all procedure calls will
+  either be the right-hand side of an assignment statement or a return
+  statement. For instance, the following Scheme code shows the ANF
+  transformation of a very simple expression:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-    \NormalTok{(f (g x) (h y))}
-        \KeywordTok{=>}
-    \NormalTok{(}\KeywordTok{let} \NormalTok{((v0 (g x)))}
-        \NormalTok{(}\KeywordTok{let} \NormalTok{((v1 (h y)))}
-            \NormalTok{(f v0 v1)))}
+\NormalTok{(f (g x) (h y))}
+    \KeywordTok{=>}
+\NormalTok{(}\KeywordTok{let} \NormalTok{((v0 (g x)))}
+    \NormalTok{(}\KeywordTok{let} \NormalTok{((v1 (h y)))}
+        \NormalTok{(f v0 v1)))}
 \end{Highlighting}
 \end{Shaded}
 
-The following snippet shows the transformation for a fibonacci function
-in Java, considering as primitive subexpressions that can be evaluated
-without a method call:
+  The following snippet shows the transformation for a fibonacci
+  function in Java, considering as primitive subexpressions that can be
+  evaluated without a method call:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-    \DataTypeTok{int} \FunctionTok{fib} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
-        \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
-            \KeywordTok{return} \NormalTok{x;}
-        \KeywordTok{else}
-            \KeywordTok{return} \FunctionTok{fib} \NormalTok{(x - }\DecValTok{2}\NormalTok{) + }\FunctionTok{fib} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
+\DataTypeTok{int} \FunctionTok{fib} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
+    \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
+        \KeywordTok{return} \NormalTok{x;}
+    \KeywordTok{else}
+        \KeywordTok{return} \FunctionTok{fib} \NormalTok{(x - }\DecValTok{2}\NormalTok{) + }\FunctionTok{fib} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
+\NormalTok{\}}
+    \NormalTok{=>}
+\DataTypeTok{int} \FunctionTok{fib_an} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
+    \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
+        \KeywordTok{return} \NormalTok{x;}
+    \KeywordTok{else} \NormalTok{\{}
+        \DataTypeTok{int} \NormalTok{temp0 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{2}\NormalTok{);}
+        \DataTypeTok{int} \NormalTok{temp1 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
+        \KeywordTok{return} \NormalTok{temp0 + temp1;}
     \NormalTok{\}}
-        \NormalTok{=>}
-    \DataTypeTok{int} \FunctionTok{fib_an} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
-        \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
-            \KeywordTok{return} \NormalTok{x;}
-        \KeywordTok{else} \NormalTok{\{}
-            \DataTypeTok{int} \NormalTok{temp0 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{2}\NormalTok{);}
-            \DataTypeTok{int} \NormalTok{temp1 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
-            \KeywordTok{return} \NormalTok{temp0 + temp1;}
-        \NormalTok{\}}
-    \NormalTok{\}}
+\NormalTok{\}}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\setcounter{enumi}{2}
-\tightlist
 \item
   Live variable analysis - We need to identify what variables are live
   at each continuation, i.e.~at each fragment call. We are only
@@ -1589,34 +1583,28 @@ without a method call:
   right after each call site. Each procedure fragment will make a
   tail-recursive call to the next fragment. Fragmentation also replaces
   iteration constructs with procedure calls.
-\end{enumerate}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-    \DataTypeTok{int} \FunctionTok{fib_an} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
-        \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
-            \KeywordTok{return} \NormalTok{x;}
-        \KeywordTok{else} \NormalTok{\{}
-            \DataTypeTok{int} \NormalTok{temp0 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{2}\NormalTok{);}
-            \KeywordTok{return} \FunctionTok{fib_an0} \NormalTok{(temp0, x);}
-        \NormalTok{\}}
+\DataTypeTok{int} \FunctionTok{fib_an} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
+    \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
+        \KeywordTok{return} \NormalTok{x;}
+    \KeywordTok{else} \NormalTok{\{}
+        \DataTypeTok{int} \NormalTok{temp0 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{2}\NormalTok{);}
+        \KeywordTok{return} \FunctionTok{fib_an0} \NormalTok{(temp0, x);}
     \NormalTok{\}}
+\NormalTok{\}}
 
-    \DataTypeTok{int} \FunctionTok{fib_an0} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp0, }\DataTypeTok{int} \NormalTok{x) \{}
-        \DataTypeTok{int} \NormalTok{temp1 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
-        \KeywordTok{return} \FunctionTok{fib_an1} \NormalTok{(temp1, temp0);}
-    \NormalTok{\}}
+\DataTypeTok{int} \FunctionTok{fib_an0} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp0, }\DataTypeTok{int} \NormalTok{x) \{}
+    \DataTypeTok{int} \NormalTok{temp1 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
+    \KeywordTok{return} \FunctionTok{fib_an1} \NormalTok{(temp1, temp0);}
+\NormalTok{\}}
 
-    \DataTypeTok{int} \FunctionTok{fib_an1} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp1, }\DataTypeTok{int} \NormalTok{temp0) \{}
-        \KeywordTok{return} \NormalTok{temp0 + temp1;}
-    \NormalTok{\}}
+\DataTypeTok{int} \FunctionTok{fib_an1} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp1, }\DataTypeTok{int} \NormalTok{temp0) \{}
+    \KeywordTok{return} \NormalTok{temp0 + temp1;}
+\NormalTok{\}}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\setcounter{enumi}{4}
-\tightlist
 \item
   Closure conversion - A continuation is composed of a series of frames,
   that are closed over the live variables in the original procedure.
@@ -1624,38 +1612,32 @@ without a method call:
   to the continuation) and invokes the appropriate procedure fragment.
   These closures can be automatically generated if the underlying
   language were to support anonymous methods.
-\end{enumerate}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-    \KeywordTok{abstract} \KeywordTok{class} \NormalTok{Frame \{}
+\KeywordTok{abstract} \KeywordTok{class} \NormalTok{Frame \{}
 
-        \KeywordTok{abstract} \NormalTok{Object }\FunctionTok{invoke}\NormalTok{(Object arg)}
-            \KeywordTok{throws} \NormalTok{Throwable;}
+    \KeywordTok{abstract} \NormalTok{Object }\FunctionTok{invoke}\NormalTok{(Object arg)}
+        \KeywordTok{throws} \NormalTok{Throwable;}
+\NormalTok{\}}
+
+\KeywordTok{class} \NormalTok{fib_frame0 }\KeywordTok{extends} \NormalTok{Frame \{}
+
+    \DataTypeTok{int} \NormalTok{x;}
+
+    \FunctionTok{fib_frame0}\NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
+        \KeywordTok{this}\NormalTok{.}\FunctionTok{x} \NormalTok{= x;}
     \NormalTok{\}}
 
-    \KeywordTok{class} \NormalTok{fib_frame0 }\KeywordTok{extends} \NormalTok{Frame \{}
-
-        \DataTypeTok{int} \NormalTok{x;}
-
-        \FunctionTok{fib_frame0}\NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
-            \KeywordTok{this}\NormalTok{.}\FunctionTok{x} \NormalTok{= x;}
-        \NormalTok{\}}
-
-        \FunctionTok{@Override}
-        \NormalTok{Object }\FunctionTok{invoke}\NormalTok{(Object return_value)}
-            \KeywordTok{throws} \NormalTok{ContinuationException, Throwable \{}
-            \KeywordTok{return} \FunctionTok{fib_an0}\NormalTok{(x);}
-        \NormalTok{\}}
-
+    \FunctionTok{@Override}
+    \NormalTok{Object }\FunctionTok{invoke}\NormalTok{(Object return_value)}
+        \KeywordTok{throws} \NormalTok{ContinuationException, Throwable \{}
+        \KeywordTok{return} \FunctionTok{fib_an0}\NormalTok{(x);}
     \NormalTok{\}}
+
+\NormalTok{\}}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\setcounter{enumi}{5}
-\tightlist
 \item
   Code annotation - The fragmented code is annotated so that it can save
   its state in the appropriate continuation frame. Each procedure call
@@ -1664,41 +1646,41 @@ without a method call:
   from the live variables, appends it to the list of frames contained by
   the special exception, and re-throws the exception. The calls in tail
   position are not annotated.
-\end{enumerate}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-    \DataTypeTok{int} \FunctionTok{fib_an} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
-        \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
-            \KeywordTok{return} \NormalTok{x;}
-        \KeywordTok{else} \NormalTok{\{}
-            \DataTypeTok{int} \NormalTok{temp0;}
-            \KeywordTok{try} \NormalTok{\{}
-                \NormalTok{temp0 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{2}\NormalTok{);}
-            \NormalTok{\} }\KeywordTok{catch} \NormalTok{(ContinuationException sce) \{}
-                \NormalTok{sce.}\FunctionTok{extend} \NormalTok{(}\KeywordTok{new} \FunctionTok{fib_frame0} \NormalTok{(x));}
-                \KeywordTok{throw} \NormalTok{sce;}
-            \NormalTok{\}}
-            \KeywordTok{return} \FunctionTok{fib_an0} \NormalTok{(temp0, x);}
-        \NormalTok{\}}
-    \NormalTok{\}}
-
-    \DataTypeTok{int} \FunctionTok{fib_an0} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp0, }\DataTypeTok{int} \NormalTok{x) \{}
-        \DataTypeTok{int} \NormalTok{temp1;}
+\DataTypeTok{int} \FunctionTok{fib_an} \NormalTok{(}\DataTypeTok{int} \NormalTok{x) \{}
+    \KeywordTok{if} \NormalTok{(x < }\DecValTok{2}\NormalTok{)}
+        \KeywordTok{return} \NormalTok{x;}
+    \KeywordTok{else} \NormalTok{\{}
+        \DataTypeTok{int} \NormalTok{temp0;}
         \KeywordTok{try} \NormalTok{\{}
-            \NormalTok{temp1 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
+            \NormalTok{temp0 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{2}\NormalTok{);}
         \NormalTok{\} }\KeywordTok{catch} \NormalTok{(ContinuationException sce) \{}
-            \NormalTok{sce.}\FunctionTok{extend} \NormalTok{(}\KeywordTok{new} \FunctionTok{fib_frame1} \NormalTok{(temp0));}
+            \NormalTok{sce.}\FunctionTok{extend} \NormalTok{(}\KeywordTok{new} \FunctionTok{fib_frame0} \NormalTok{(x));}
             \KeywordTok{throw} \NormalTok{sce;}
         \NormalTok{\}}
-        \KeywordTok{return} \FunctionTok{fib_an1} \NormalTok{(temp1, temp0);}
+        \KeywordTok{return} \FunctionTok{fib_an0} \NormalTok{(temp0, x);}
     \NormalTok{\}}
+\NormalTok{\}}
 
-    \DataTypeTok{int} \FunctionTok{fib_an1} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp1, }\DataTypeTok{int} \NormalTok{temp0) \{}
-        \KeywordTok{return} \NormalTok{temp0 + temp1;}
+\DataTypeTok{int} \FunctionTok{fib_an0} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp0, }\DataTypeTok{int} \NormalTok{x) \{}
+    \DataTypeTok{int} \NormalTok{temp1;}
+    \KeywordTok{try} \NormalTok{\{}
+        \NormalTok{temp1 = }\FunctionTok{fib_an} \NormalTok{(x - }\DecValTok{1}\NormalTok{);}
+    \NormalTok{\} }\KeywordTok{catch} \NormalTok{(ContinuationException sce) \{}
+        \NormalTok{sce.}\FunctionTok{extend} \NormalTok{(}\KeywordTok{new} \FunctionTok{fib_frame1} \NormalTok{(temp0));}
+        \KeywordTok{throw} \NormalTok{sce;}
     \NormalTok{\}}
+    \KeywordTok{return} \FunctionTok{fib_an1} \NormalTok{(temp1, temp0);}
+\NormalTok{\}}
+
+\DataTypeTok{int} \FunctionTok{fib_an1} \NormalTok{(}\DataTypeTok{int} \NormalTok{temp1, }\DataTypeTok{int} \NormalTok{temp0) \{}
+    \KeywordTok{return} \NormalTok{temp0 + temp1;}
+\NormalTok{\}}
 \end{Highlighting}
 \end{Shaded}
+\end{enumerate}
 
 \subsection{Java frameworks implementing
 continuations}\label{java-frameworks-implementing-continuations}
@@ -4719,5 +4701,4 @@ International Workshop on Hot Topics in Software Upgrades - HotSWUp
 '08}, 2008, p. 1 {[}Online{]}. Available:
 \url{http://portal.acm.org/citation.cfm?doid=1490283.1490289}
 }
-
 \end{document}
