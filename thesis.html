@@ -46,6 +46,17 @@ code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Inf
   <link rel="stylesheet" href="css/github-pandoc.css" type="text/css" />
 </head>
 <body>
+<h1 class="title">
+First-Class Continuations on the Java Virtual Machine: An Implementation within the Kawa Scheme Compiler
+</h1>
+<h3>
+MSc Thesis by Andrea Bernardini
+</h3>
+<h3>
+Supervisor: Prof. Matteo Pradella
+</h3>
+<p></p>
+<h1>Table of Contents</h1>
 <div id="TOC">
 <ul>
 <li><a href="#abstract">Abstract</a></li>
@@ -133,16 +144,6 @@ code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul>
 </div>
-<h1 class="title">
-First-Class Continuations on the Java Virtual Machine: An Implementation within the Kawa Scheme Compiler
-</h1>
-<h3>
-MSc Thesis by Andrea Bernardini
-</h3>
-<h3>
-Supervisor: Prof. Matteo Pradella
-</h3>
-<p></p>
 <h1 id="abstract">Abstract</h1>
 <p>The widespread diffusion of the Java technology has encouraged the birth of new programming languages on the Java Virtual Machine, languages that brings new features to the Java environment, most of which taken from the functional paradigm. Kawa is an implementation of the programming language Scheme on the Java Virtual Machine. As a Scheme it provides a functional style of programming, dynamic typing, and meta-programming facilities. However, being the Java Virtual Machine devoid of stack manipulation primitives, Kawa lacks of one of the most peculiar Scheme features: First-class continuations.</p>
 <p>This dissertation describes an implementation of the <code>call/cc</code> control operator in the Kawa compiler. In particular it shows how the exception handling feature, common to many programming languages, can be exploited to implement first-class continuations in an environment without stack manipulation primitives, and how this can be realised in a real compiler. This thesis also shows how first-class continuations and control operators like <code>call/cc</code> can be used to introduce concurrency features and to implement new control flow constructs in programming languages.</p>
@@ -176,7 +177,7 @@ Supervisor: Prof. Matteo Pradella
 <p class="caption">TIOBE Index for June 2015 <span class="citation">[<a href="#ref-TIOBEIndex2015">2</a>]</span> </p>
 </div>
 <div class="figure">
-<embed src="figures/history_rank.pdf" />
+<img src="figures/history_rank.png" alt="Positions of the top 10 programming languages of many years back. [2] " />
 <p class="caption">Positions of the top 10 programming languages of many years back. <span class="citation">[<a href="#ref-TIOBEIndex2015">2</a>]</span> </p>
 </div>
 <h4 id="java-8">Java 8</h4>
@@ -652,12 +653,12 @@ Supervisor: Prof. Matteo Pradella
 <h2 id="a-solution-generalises-stack-inspection">A solution: generalises stack inspection</h2>
 <p>The idea is to fragment the original program in a sequence of atomic computations, then to throw an exception to unwind the stack, and use the same exception to store the list of computations that constitute the stack portion to be captured. This list of computations can be later used to restate the entire continuation. As an example, consider the stack of nested function calls in Figure . At top level we call <code>topLevel</code>, that in turn calls <code>f</code>, which calls <code>g</code>, which call <code>call/cc</code> with <code>h</code> as argument. <code>h</code> is a function that takes one argument. Each call is enclosed in an exception handler that catches a <code>ContinuationException</code>.</p>
 <div class="figure">
-<embed src="figures/stack.pdf" />
+<img src="figures/stack.png" alt="" />
 <p class="caption"></p>
 </div>
 <p>When the <code>call/cc</code> is called, it creates a new <code>ContinuationException</code> object, adds the computation associated to <code>h</code> to the list, and throws the exception. Just after the <code>throw</code>, the execution stops and the JVM searches routines in the stack for an exception handler. The first <code>try</code>/<code>catch</code> expression found, that is in <code>g</code>, extends the list with an other computation and re-throws the exception.</p>
 <div class="figure">
-<embed src="figures/stack_mod.pdf" />
+<img src="figures/stack_mod.png" alt="" />
 <p class="caption"></p>
 </div>
 <p>The exception goes past the try block to try blocks in an outer scope. At each step a new computation is added to the <code>ContinuationException</code>, until the control goes to the top level exception handler, which assembles the actual exception object. Searching in outer scopes for exception handlers is called a <em>stack walk</em>. While the stack unwinds, the JVM pops the stack frames off of the stack, destroying all the stack allocated variables. However, as all the computation steps are saved in the <code>ContinuationException</code>, a copy of the stack is progressively created on the heap. The exception always maintains a reference to the list of computations during the stack walk, so that the continuation is not garbage-collected.</p>
@@ -896,7 +897,7 @@ Supervisor: Prof. Matteo Pradella
     }</code></pre></div>
 <p>I tested each type of method call with JMH <span class="citation">[<a href="#ref-jmh2015">42</a>, <a href="#ref-BenchmarkingJVM2015">43</a>]</span>, a benchmarking framework for the JVM. Figures  ,  show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to re-design a significant part of the compiler, and to loose the compatibility with previous version of the JVM, for such a small improvement.</p>
 <div class="figure">
-<embed src="figures/calls-table.pdf" />
+<img src="figures/calls-table.png" alt="Performance comparison of different types of call in Java " />
 <p class="caption">Performance comparison of different types of call in Java </p>
 </div>
 <div class="figure">
@@ -1789,7 +1790,7 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 <p>We saw in the previous chapters how we can implement <code>call/cc</code> in a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.</p>
 <p>I used a set of benchmarks to analyse the behaviour of the running code in the case of both transformed code and non-transformed code. All the benchmarks were executed on an Intel i5 dual-core processor with 4GB of RAM (i5-2410M , 2.30GHz).The operating system was Debian GNU/Linux. The table in Figure  and the chart in Figure  show the results.</p>
 <div class="figure">
-<embed src="figures/overhead-table.pdf" />
+<img src="figures/overhead-table.png" alt="Transformed vs non-transformed code, 10 iterations, values in seconds " />
 <p class="caption">Transformed vs non-transformed code, 10 iterations, values in seconds </p>
 </div>
 <p>The <code>fib</code> benchmark runs a simple Fibonacci function with 30 as input. <code>tak</code> implements the Takeuchi function and runs it with 18, 12, 6. <code>cpstak</code> is a version of <code>tak</code> rewritten in continuation passing style. We can observe that the transformation introduces a considerable overhead, especially in the <code>fib</code> benchmark.</p>
@@ -1799,16 +1800,16 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 </div>
 <p>To understand from where this overhead comes from, I profiled the execution of the fib benchmark using HPROF, a profiling tool provided by the Java platform <span class="citation">[<a href="#ref-HPROF2015">47</a>]</span>. Considering the cpu usage data (Figure ), we can observe that approximately 10% of the cpu time is spent allocating <code>Proceure</code> objects (<code>gnu.mapping.Procedure.&lt;init&gt;</code> and <code>gnu.expr.ModuleMethod.&lt;init&gt;</code>).</p>
 <div class="figure">
-<embed src="figures/cpu.pdf" />
+<img src="figures/cpu.png" alt="Most called Java methods in the fib benchmark " />
 <p class="caption">Most called Java methods in the <code>fib</code> benchmark </p>
 </div>
 <div class="figure">
-<embed src="figures/heap.pdf" />
+<img src="figures/heap.png" alt="Most allocated Java object during the execution of the fib benchmark " />
 <p class="caption">Most allocated Java object during the execution of the <code>fib</code> benchmark </p>
 </div>
 <p>We can reach the same conclusions analysing the heap usage. Figure  shows which objects are more often allocated during the execution of <code>fib</code>.</p>
 <div class="figure">
-<embed src="figures/mem-overhead-table.pdf" />
+<img src="figures/mem-overhead-table.png" alt="memory usage in transformed vs non-transformed code, values in Kbytes  " />
 <p class="caption">memory usage in transformed vs non-transformed code, values in Kbytes  </p>
 </div>
 <p>Almost 40% of the heap is used to store object of type <code>ModuleMethodWithContext</code>, that is the runtime object in which closures are allocated. This is not unexpected, as the transformed code is fragmented in a set of closures. However, this suggest that a possible improvement for the technique can be obtained optimising closure allocation.</p>
@@ -1828,7 +1829,7 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 <li><p>SISC is a Scheme interpreter written in Java, and running on the JVM. SISC is also the only other JVM Scheme supporting <code>call/cc</code>.</p></li>
 </ul>
 <div class="figure">
-<embed src="figures/interpreted-table.pdf" />
+<img src="figures/interpreted-table.png" alt="Capturing benchmark (interpreted code), 10 iterations, values in seconds " />
 <p class="caption">Capturing benchmark (interpreted code), 10 iterations, values in seconds </p>
 </div>
 <div class="figure">
@@ -1837,7 +1838,7 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 </div>
 <p>Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures  and  compares the execution time of code compiled by five compilers, including the modified version of Kawa.</p>
 <div class="figure">
-<embed src="figures/compiled-table.pdf" />
+<img src="figures/compiled-table.png" alt="Capturing benchmark (pre-compiled code), 10 iterations, values in seconds " />
 <p class="caption">Capturing benchmark (pre-compiled code), 10 iterations, values in seconds </p>
 </div>
 <div class="figure">
@@ -1848,7 +1849,7 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 <h2 id="callcc-memory-usage"><code>call/cc</code> memory usage</h2>
 <p>I measured peak memory usage of the same five benchmarks introduced in the performance section, testing the same range of compilers. This time Kawa fcc performs similarly to SISC, except for the <code>fibc</code> benchmark. Kawa fcc also uses a similar amount of memory similar to Racket in the <code>coroutines</code>, <code>generators</code> and <code>ctak</code> benchmarks. Chez and Scheme to C compilers have performances unreachable for implementations using a VM, both in interpreted and compiled modes.</p>
 <div class="figure">
-<embed src="figures/mem-interpreted-table.pdf" />
+<img src="figures/mem-interpreted-table.png" alt="Peak memory usage (interpreted code), 10 iterations, values in Kbytes " />
 <p class="caption">Peak memory usage (interpreted code), 10 iterations, values in Kbytes </p>
 </div>
 <div class="figure">
@@ -1857,7 +1858,7 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 </div>
 <p>I repeated the same benchmarks using pre-compiled code. However, with relation to memory usage, the differences between interpreted vs compiled code is negligible.</p>
 <div class="figure">
-<embed src="figures/mem-compiled-table.pdf" />
+<img src="figures/mem-compiled-table.png" alt="Peak memory usage (pre-compiled code), 10 iterations, values in Kbytes " />
 <p class="caption">Peak memory usage (pre-compiled code), 10 iterations, values in Kbytes </p>
 </div>
 <div class="figure">
@@ -1867,7 +1868,7 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 <h2 id="code-size-1">Code size</h2>
 <p>We saw in Chapter 3 that we expect an increase in code size proportional to the number of code fragments, so we want to measure the actual difference in size between a regular class file and an instrumented one. Figure  shows a comparison of regular code and transformed code.</p>
 <div class="figure">
-<embed src="figures/codesize-table.pdf" />
+<img src="figures/codesize-table.png" alt="Code size comparison, values in bytes " />
 <p class="caption">Code size comparison, values in bytes </p>
 </div>
 <p>We can observe that the size of transformed code can be 10 times larger than the code compiled without first-class continuations enabled. Even if the code size increase is proportional to the number of fragments, the difference in size is significant. This indicates that would be better to limit the use of transformed code to modules that needs <code>call/cc</code>, and use <code>call/cc</code> enabled code in combination with non-transformed code.</p>
