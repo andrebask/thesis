@@ -27,7 +27,7 @@ The reference implementation Java compilers, virtual machines, and class librari
 
 ![TIOBE Index for June 2015 [@TIOBEIndex2015] \label{lang-rank} ](figures/ranking.png)
 
-![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.pdf)
+![Positions of the top 10 programming languages of many years back. [@TIOBEIndex2015] \label{history-rank} ](figures/history_rank.png)
 
 #### Java 8
 Starting from release 8, Java supports aspects of functional programming. Two core concepts introduced in Java 8 are *lambda expressions* and *functional interfaces* [@OracleLambda2015].

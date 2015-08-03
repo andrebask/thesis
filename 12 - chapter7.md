@@ -10,7 +10,7 @@ We saw in the previous chapters how we can implement `call/cc` in a JVM targetin
 
 I used a set of benchmarks to analyse the behaviour of the running code in the case of both transformed code and non-transformed code. All the benchmarks were executed on an Intel i5 dual-core processor with 4GB of RAM (i5-2410M , 2.30GHz).The operating system was Debian GNU/Linux. The table in Figure \ref{overhead-table} and the chart in Figure \ref{overhead} show the results.
 
-![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.pdf)
+![Transformed vs non-transformed code, 10 iterations, values in seconds \label{overhead-table}](figures/overhead-table.png)
 
 The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` implements the Takeuchi function and runs it with 18, 12, 6. `cpstak` is a version of `tak` rewritten in continuation passing style. We can observe that the transformation introduces a considerable overhead, especially in the `fib` benchmark.
 
@@ -18,13 +18,13 @@ The `fib` benchmark runs a simple Fibonacci function with 30 as input. `tak` imp
 
 To understand from where this overhead comes from, I profiled the execution of the fib benchmark using HPROF, a profiling tool provided by the Java platform [@HPROF2015]. Considering the cpu usage data (Figure \ref{cpu}), we can observe that approximately 10% of the cpu time is spent allocating `Proceure` objects (`gnu.mapping.Procedure.<init>` and `gnu.expr.ModuleMethod.<init>`).
 
-![Most called Java methods in the `fib` benchmark \label{cpu}](figures/cpu.pdf)
+![Most called Java methods in the `fib` benchmark \label{cpu}](figures/cpu.png)
 
-![Most allocated Java object during the execution of the `fib` benchmark \label{heap}](figures/heap.pdf)
+![Most allocated Java object during the execution of the `fib` benchmark \label{heap}](figures/heap.png)
 
 We can reach the same conclusions analysing the heap usage. Figure \ref{heap} shows which objects are more often allocated during the execution of `fib`.
 
-![memory usage in transformed vs non-transformed code, values in Kbytes \label{mem-overhead-table} \label{heap}](figures/mem-overhead-table.pdf)
+![memory usage in transformed vs non-transformed code, values in Kbytes \label{mem-overhead-table} \label{heap}](figures/mem-overhead-table.png)
 
 Almost 40% of the heap is used to store object of type `ModuleMethodWithContext`, that is the runtime object in which closures are allocated. This is not unexpected, as the transformed code is fragmented in a set of closures. However, this suggest that a possible improvement for the technique can be obtained optimising closure allocation.
 
@@ -47,13 +47,13 @@ I compared the modified version of Kawa with other Scheme implementations with a
 
 * SISC is a Scheme interpreter written in Java, and running on the JVM. SISC is also the only other JVM Scheme supporting `call/cc`.
 
-![Capturing benchmark (interpreted code), 10 iterations, values in seconds \label{interp-tab}](figures/interpreted-table.pdf)
+![Capturing benchmark (interpreted code), 10 iterations, values in seconds \label{interp-tab}](figures/interpreted-table.png)
 
 ![Capturing benchmark (interpreted code), 10 iterations \label{interp}](figures/interpreted.png)
 
 Some of the Scheme implementations introduced above can pre-compile code to a bytecode or binary format, which can be later executed without paying the cost for translation. Figures \ref{compiled-tab} and \ref{compiled} compares the execution time of code compiled by five compilers, including the modified version of Kawa.
 
-![Capturing benchmark (pre-compiled code), 10 iterations, values in seconds \label{compiled-tab}](figures/compiled-table.pdf)
+![Capturing benchmark (pre-compiled code), 10 iterations, values in seconds \label{compiled-tab}](figures/compiled-table.png)
 
 ![Capturing benchmark (pre-compiled code), 10 iterations \label{compiled}](figures/compiled.png)
 
@@ -62,20 +62,20 @@ Looking at the benchmarks' outcome we can see that Kawa with first-class continu
 ## `call/cc` memory usage
 I measured peak memory usage of the same five benchmarks introduced in the performance section, testing the same range of compilers. This time Kawa fcc performs similarly to SISC, except for the `fibc` benchmark. Kawa fcc also uses a similar amount of memory similar to Racket in the `coroutines`, `generators` and `ctak` benchmarks. Chez and Scheme to C compilers have performances unreachable for implementations using a VM, both in interpreted and compiled modes.
 
-![Peak memory usage (interpreted code), 10 iterations, values in Kbytes \label{interp-tab}](figures/mem-interpreted-table.pdf)
+![Peak memory usage (interpreted code), 10 iterations, values in Kbytes \label{interp-tab}](figures/mem-interpreted-table.png)
 
 ![Peak memory usage (interpreted code), 10 iterations \label{interp}](figures/mem-interpreted.png)
 
 I repeated the same benchmarks using pre-compiled code. However, with relation to memory usage, the differences between interpreted vs compiled code is negligible.
 
-![Peak memory usage (pre-compiled code), 10 iterations, values in Kbytes \label{compiled-tab}](figures/mem-compiled-table.pdf)
+![Peak memory usage (pre-compiled code), 10 iterations, values in Kbytes \label{compiled-tab}](figures/mem-compiled-table.png)
 
 ![Peak memory usage (pre-compiled code), 10 iterations \label{compiled}](figures/mem-compiled.png)
 
 ## Code size
 We saw in Chapter 3 that we expect an increase in code size proportional to the number of code fragments, so we want to measure the actual difference in size between a regular class file and an instrumented one. Figure \ref{codesize-tab} shows a comparison of regular code and transformed code.
 
-![Code size comparison, values in bytes \label{codesize-tab}](figures/codesize-table.pdf)
+![Code size comparison, values in bytes \label{codesize-tab}](figures/codesize-table.png)
 
 We can observe that the size of transformed code can be 10 times larger than the code compiled without first-class continuations enabled. Even if the code size increase is proportional to the number of fragments, the difference in size is significant. This indicates that would be better to limit the use of transformed code to modules that needs `call/cc`, and use `call/cc` enabled code in combination with non-transformed code.
 

@@ -11,11 +11,11 @@ The use of virtual machines for the implementation of programming languages has 
 ## A solution: generalises stack inspection
 The idea is to fragment the original program in a sequence of atomic computations, then to throw an exception to unwind the stack, and use the same exception to store the list of computations that constitute the stack portion to be captured. This list of computations can be later used to restate the entire continuation. As an example, consider the stack of nested function calls in Figure \ref{stack}. At top level we call `topLevel`, that in turn calls `f`, which calls `g`, which call `call/cc` with `h` as argument. `h` is a function that takes one argument. Each call is enclosed in an exception handler that catches a `ContinuationException`.
 
-![\label{stack}](figures/stack.pdf)
+![\label{stack}](figures/stack.png)
 
 When the `call/cc` is called, it creates a new `ContinuationException` object, adds the computation associated to `h` to the list, and throws the exception. Just after the `throw`, the execution stops and the JVM searches routines in the stack for an exception handler. The first `try`/`catch` expression found, that is in `g`, extends the list with an other computation and re-throws the exception.
 
-![\label{stack-mod}](figures/stack_mod.pdf)
+![\label{stack-mod}](figures/stack_mod.png)
 
 The exception goes past the try block to try blocks in an outer scope. At each step a new computation is added to the `ContinuationException`, until the control goes to  the top level exception handler, which assembles the actual exception object. Searching in outer scopes for exception handlers is called a *stack walk*. While the stack unwinds, the JVM pops the stack frames off of the stack, destroying all the stack allocated variables. However, as all the computation steps are saved in the `ContinuationException`, a copy of the stack is progressively created on the heap. The exception always maintains a reference to the list of computations during the stack walk, so that the continuation is not garbage-collected.
 

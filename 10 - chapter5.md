@@ -128,7 +128,7 @@ As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, t
 
 I tested each type of method call with JMH [@jmh2015; @BenchmarkingJVM2015], a benchmarking framework for the JVM. Figures \ref{calls-table} , \ref{calls} show the results. The lambda case is quite fast, if compared with MethodHandles, but also the explicit use of LambdaMetafactory gives good results, provided that the call to LambdaMetafactory.metafactory is cached in a static field. However, the difference in performance between lambda calls and regular method calls is negligible. Thus is not worth to re-design a significant part of the compiler, and to loose the compatibility with previous version of the JVM, for such a small improvement.
 
-![Performance comparison of different types of call in Java \label{calls-table}](figures/calls-table.pdf)
+![Performance comparison of different types of call in Java \label{calls-table}](figures/calls-table.png)
 
 ![Performance comparison of different types of call in Java \label{calls}](figures/calls.png)
 
