@@ -1,4 +1,4 @@
-\chapter{Acknowledgements}
+#Acknowledgements
 
 I would like to thank the people who made this thesis possible.
 
@@ -8,4 +8,3 @@ Special thanks are given to Per Bothner, the author and project leader of Kawa, 
 
 My deepest gratitude goes to my family, for the continuous support during these years at university, and to my friends, for making this years unforgettable.
 
-\afterpage{\blankpage}

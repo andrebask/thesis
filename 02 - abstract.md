@@ -1,5 +1,6 @@
 \frontmatter
-\chapter{Abstract}
+
+#Abstract
 
 The widespread diffusion of the Java technology has encouraged the birth of new programming languages on the Java Virtual Machine, languages that brings new features to the Java environment, most of which taken from the functional paradigm. Kawa is an implementation of the programming language Scheme on the Java Virtual Machine. As a Scheme it provides a functional style of programming, dynamic typing, and meta-programming facilities. However, being the Java Virtual Machine devoid of stack manipulation primitives, Kawa lacks of one of the most peculiar Scheme features: First-class continuations.
 

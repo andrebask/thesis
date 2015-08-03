@@ -1,7 +1,7 @@
 #!/bin/bash
 pandoc --highlight-style=tango \
+       --toc \
        --latex-engine=pdflatex \
-       -H preamble.tex \
        -V fontsize=12pt \
        -V documentclass:book \
        -V papersize:a4paper \
@@ -11,4 +11,5 @@ pandoc --highlight-style=tango \
        --bibliography=papers.bib \
        --csl="csl/ieee-with-url.csl" \
        *-*.md \
-       -o "thesis.tex"
+       -c "css/github-pandoc.css" \
+       -o "thesis.html"
