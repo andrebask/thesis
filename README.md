@@ -1,4 +1,1 @@
-thesis-markdown-pandoc
-======================
-
-MSc thesis
+MSc thesis: [link](https://andrebask.github.io/thesis)
