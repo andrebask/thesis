@@ -1,9 +1,9 @@
 # Evaluation
 
 > *“Extraordinary claims require extraordinary evidence.”*
-\begin{flushright}
+<p class="citright">
 Carl Sagan, Encyclopedia Galactica
-\end{flushright}
+</p>
 
 ## Transformation overhead
 We saw in the previous chapters how we can implement `call/cc` in a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.

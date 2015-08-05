@@ -1,9 +1,9 @@
 # A call/cc implementation for Kawa
 
 > *"Do... or do not. There is no try."*
-\begin{flushright}
+<p class="citright">
 The Empire Strikes Back (film, 1980)
-\end{flushright}
+</p>
 
 ## An instance of the transformation in Java
 As a first preliminary step, I ported the C# code in [@StackHack2005] to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls on the JVM:

@@ -1,9 +1,9 @@
 # Case studies
 
 > *“Who controls the past controls the future. He who controls the present controls the past.”*
-\begin{flushright}
+<p class="citright">
 George Orwell, 1984
-\end{flushright}
+</p>
 
 ## Asynchronous programming: Async and Await
 

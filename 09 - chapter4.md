@@ -1,9 +1,9 @@
 # Implementing first-class continuations on the JVM
 
 > *"I don't care what anything was designed to do. I care about what it can do."*
-\begin{flushright}
+<p class="citright">
 Apollo 13 (film, 1995)
-\end{flushright}
+</p>
 
 ## The stack manipulation dilemma
 The use of virtual machines for the implementation of programming languages has become common in recent compiler developments. Unlike low-level languages, such as C, that permit access to the stack through use of pointer arithmetic, higher level languages, such as Java or C# do not provide instructions for installing and saving the run-time stack. Compiling Scheme, or any other language that uses first-class continuations, to the JVM thus poses a challenging problem. At first glance, the implementers must either give up implementing continuations or manage a heap-stored stack. The former choice limits the programmers of these languages, besides automatically making the Scheme implementation non standard-compliant. The latter choice precludes many of the advantages that these machines supposedly offer. Indeed, the major problem with heap allocation of call frames and environments is the overhead associated with the use of a heap. This overhead includes the direct cost of allocating objects in the heap when building the call frames and environments, and of following references instead of increasing and decreasing a stack or frame pointer when accessing pieces of the frame or environment. The overhead also includes the indirect cost of garbage collection to manage stack frames and environments and the indirect cost of using significant amounts of memory. Furthermore, the use of the heap rather than a stack prevents the exploitation of commonly available hardware or microcode-supported stack push, pop and index instructions and the use of function call and return instructions.

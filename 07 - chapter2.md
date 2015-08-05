@@ -1,9 +1,9 @@
 # State of the art
 
 > *"Objective reality is a synthetic construct, dealing with a hypothetical universalization of a multitude of subjective realities."*
-\begin{flushright}
+<p class="citright">
 Philip K. Dick, The Electric Ant
-\end{flushright}
+</p>
 
 ## Stack-based implementation techniques for first-class continuations
 The most common approach to implement first-class continuations is to use a stack-based execution architecture and to reify the current continuation by making a copy of the stack, which is reinstated when the continuation is invoked. This is the approach taken by many language implementations that are in direct control of the runtime system. This section describes the most used implementation strategies for first class continuations.

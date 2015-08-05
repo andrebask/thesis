@@ -157,7 +157,9 @@ Supervisor: Prof. Matteo Pradella
 <h1 id="introduction">Introduction</h1>
 <blockquote>
 <em>&quot;Programming languages are not just technology, but what programmers think in. They're half technology and half religion.&quot;</em>
-
+<p class="citright">
+Paul Graham, Beating the Averages
+</p>
 </blockquote>
 <h2 id="context">Context</h2>
 <h3 id="functional-programming">Functional programming</h3>
@@ -444,7 +446,9 @@ Supervisor: Prof. Matteo Pradella
 <h1 id="state-of-the-art">State of the art</h1>
 <blockquote>
 <em>&quot;Objective reality is a synthetic construct, dealing with a hypothetical universalization of a multitude of subjective realities.&quot;</em>
-
+<p class="citright">
+Philip K. Dick, The Electric Ant
+</p>
 </blockquote>
 <h2 id="stack-based-implementation-techniques-for-first-class-continuations">Stack-based implementation techniques for first-class continuations</h2>
 <p>The most common approach to implement first-class continuations is to use a stack-based execution architecture and to reify the current continuation by making a copy of the stack, which is reinstated when the continuation is invoked. This is the approach taken by many language implementations that are in direct control of the runtime system. This section describes the most used implementation strategies for first class continuations.</p>
@@ -646,7 +650,9 @@ Supervisor: Prof. Matteo Pradella
 <h1 id="implementing-first-class-continuations-on-the-jvm">Implementing first-class continuations on the JVM</h1>
 <blockquote>
 <em>&quot;I don't care what anything was designed to do. I care about what it can do.&quot;</em>
-
+<p class="citright">
+Apollo 13 (film, 1995)
+</p>
 </blockquote>
 <h2 id="the-stack-manipulation-dilemma">The stack manipulation dilemma</h2>
 <p>The use of virtual machines for the implementation of programming languages has become common in recent compiler developments. Unlike low-level languages, such as C, that permit access to the stack through use of pointer arithmetic, higher level languages, such as Java or C# do not provide instructions for installing and saving the run-time stack. Compiling Scheme, or any other language that uses first-class continuations, to the JVM thus poses a challenging problem. At first glance, the implementers must either give up implementing continuations or manage a heap-stored stack. The former choice limits the programmers of these languages, besides automatically making the Scheme implementation non standard-compliant. The latter choice precludes many of the advantages that these machines supposedly offer. Indeed, the major problem with heap allocation of call frames and environments is the overhead associated with the use of a heap. This overhead includes the direct cost of allocating objects in the heap when building the call frames and environments, and of following references instead of increasing and decreasing a stack or frame pointer when accessing pieces of the frame or environment. The overhead also includes the indirect cost of garbage collection to manage stack frames and environments and the indirect cost of using significant amounts of memory. Furthermore, the use of the heap rather than a stack prevents the exploitation of commonly available hardware or microcode-supported stack push, pop and index instructions and the use of function call and return instructions.</p>
@@ -782,7 +788,9 @@ Supervisor: Prof. Matteo Pradella
 <h1 id="a-callcc-implementation-for-kawa">A call/cc implementation for Kawa</h1>
 <blockquote>
 <em>&quot;Do... or do not. There is no try.&quot;</em>
-
+<p class="citright">
+The Empire Strikes Back (film, 1980)
+</p>
 </blockquote>
 <h2 id="an-instance-of-the-transformation-in-java">An instance of the transformation in Java</h2>
 <p>As a first preliminary step, I ported the C# code in <span class="citation">[<a href="#ref-StackHack2005">32</a>]</span> to Java, to study the feasibility of the technique on the JVM. The code represents a single instance of the transformation for a simple fibonacci function, and implements some support functions and data structures. Given that the global transformation fragments the original source in many function calls, I produced four versions of the transformed code, to compare the performance of different type of calls on the JVM:</p>
@@ -1488,7 +1496,9 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 <h1 id="case-studies">Case studies</h1>
 <blockquote>
 <em>“Who controls the past controls the future. He who controls the present controls the past.”</em>
-
+<p class="citright">
+George Orwell, 1984
+</p>
 </blockquote>
 <h2 id="asynchronous-programming-async-and-await">Asynchronous programming: Async and Await</h2>
 <p>Asynchronous programming is a programming paradigm that facilitates fast and responsive applications. Asynchronous programming is crucial to avoid the inefficiencies caused by blocking activities, such as accesses to the web. Access to a web resource or to a huge database can be slow or delayed. If such an activity is blocked within a synchronous process, the entire application is stuck. You can avoid performance bottlenecks and enhance the responsiveness of your application by using asynchronous programming. In an asynchronous process, the application can continue with other work that does not depend on the resource to be accessed until the potentially blocking task finishes. However, traditional techniques for writing asynchronous applications can be complicated, making them difficult to write, debug, and maintain. In this section, I propose a syntax similar to the <code>async</code>/<code>await</code> construct already introduced in C#, that allows to execute asynchronous tasks during the normal execution of the program.</p>
@@ -1784,7 +1794,9 @@ annotatedExp.<span class="fu">try_clause</span> = <span class="fu">visit</span>(
 <h1 id="evaluation">Evaluation</h1>
 <blockquote>
 <em>“Extraordinary claims require extraordinary evidence.”</em>
-
+<p class="citright">
+Carl Sagan, Encyclopedia Galactica
+</p>
 </blockquote>
 <h2 id="transformation-overhead">Transformation overhead</h2>
 <p>We saw in the previous chapters how we can implement <code>call/cc</code> in a JVM targeting compiler, performing a transformation on the whole source to instrument the original code. We would like to know how this global transformation impacts the overall performances of the program when no continuations are captured. We already observed that exception handlers are not expensive on the JVM, but there are other variables to take in consideration. The code fragmentation implies an increase on the number of function calls, which can reduce performance.</p>

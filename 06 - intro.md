@@ -3,9 +3,9 @@
 #Introduction
 
 > *"Programming languages are not just technology, but what programmers think in. They're half technology and half religion."*
-\begin{flushright}
+<p class="citright">
 Paul Graham, Beating the Averages
-\end{flushright}
+</p>
 
 ## Context
 
